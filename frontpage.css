@@ -1,4 +1,4 @@
-/* Reset some defaults */
+/* Reset defaults */
 * {
     margin: 0;
     padding: 0;
@@ -6,78 +6,114 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Heaader Design */
-
-header{
+/* === Header Styling === */
+header {
     height: 15vh;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
     display: flex;
-    background-color: aquamarine;
-    /* text-align: center; */
     align-items: center;
     justify-content: space-between;
-    padding: 20px;
-}
-header .left , header .right{
-    width: 50%;
-    /* border: 2px solid black; */
+    padding: 0 30px;
+    color: #fff;
 }
 
-/* Header left */
-header .left{
+header .left,
+header .right {
+    width: 50%;
+}
+
+/* Header Left */
+header .left {
     display: flex;
     align-items: center;
+    gap: 15px;
 }
-header .left img{
-    width:15%;
+
+header .left img {
+    width: 10%;
+    height: auto;
+}
+
+header .left h1 {
+    font-size: 45px;
+    font-weight: 600;
 }
 
 /* Header Right */
-header form{
+header form {
     display: flex;
-    justify-content: space-around;
+    gap: 12px;
+    justify-content: flex-end;
+    align-items: center;
 }
-input {
-    width: 100%;
+
+header .right input {
     padding: 10px 15px;
     border: 1px solid #ccc;
     border-radius: 10px;
     background-color: #f9f9f9;
     font-size: 16px;
-    transition: border-color 0.2s;
-}
-header .right #email,
-header .right #password{
-    border-radius: 10px;
-    width: 40%;
-}
-header .right #login-btn{
-    border-radius: 10px;
-    width: 10%;
+    transition: 0.2s;
 }
 
-/* Banner section */
-section{
-    width: 100%;
+header .right input:focus {
+    border-color: #2a5298;
+    background-color: #fff;
+}
+
+#email,
+#password {
+    width: 40%;
+}
+
+#login-btn {
+    width: auto;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    /* border: none; */
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+#login-btn:hover {
+    background: linear-gradient(135deg, #17407f, #264b8d);
+    border: 1px solid white;
+    transition: background 0.3s ease;
+
+}
+
+/* === Banner Section === */
+section {
+    display: flex;
     height: 80vh;
+    justify-content: space-around;
     align-items: center;
-    padding: 5vh;
+    padding: 50px 30px;
+    background-color: #f2f6fa;
+    flex-wrap: wrap;
+}
 
+section img {
+    width: 30vw;
+    /* max-width: 30vw; */
+    height: auto;
 }
-section img{
-    width: 40%;
-    /* border: 2px solid red; */
+
+section h1 {
+    font-size: 34px;
+    color: #1e3c72;
+    max-width: 500px;
+    line-height: 1.4;
 }
-section h1{
-    margin-top: 10vh;
-    font-size: 30px;
-}
-/* footer */
-footer{
+
+/* === Footer === */
+footer {
     height: 5vh;
-    background-color: darkblue;
-    color: aliceblue;
-    text-align: center;
+    background-color: #1e3c72;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
     align-items: center;
+    font-size: 14px;
 }
-
-
