@@ -98,11 +98,10 @@ section img {
     width: 30vw;
     /* max-width: 30vw; */
     height: auto;
-    margin-bottom: 20px;
 }
 
 section h1 {
-    font-size: 34px;
+    font-size: 30px;
     color: #1e3c72;
     max-width: 500px;
     line-height: 1.4;
@@ -120,3 +119,4 @@ footer {
     align-items: center;
     font-size: 14px;
 }
+
