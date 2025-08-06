@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DaakPion Messenger</title>
+  <link rel="stylesheet" href="chatboard.css"/>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <img src="logo.png" alt="Logo"/>
+      </div>
+      <input type="text" placeholder="Search for your friend" class="search-bar"/>
+      <h2>Your Friends</h2>
+      <div class="friend-list">
+        <div class="friend">
+          <img src="user.png" alt="Friend 1"/>
+          <span>Friend 1</span>
+        </div>
+        <div class="friend">
+          <img src="user.png" alt="Friend 2"/>
+          <span>Friend 2</span>
+        </div>
+        <div class="friend">
+          <img src="user.png" alt="Friend 3"/>
+          <span>Friend 3</span>
+        </div>
+        <div class="friend">
+          <img src="user.png" alt="Friend 4"/>
+          <span>Friend 4</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Chat Area -->
+    <main class="chat-area">
+      <div class="chat-header">
+        <img src="user.png" alt="Friend"/>
+        <span>Friend 1</span>
+      </div>
+      <div class="chat-box">
+        <div class="message received">
+          <img src="user.png" alt="User"/>
+          <p>This is a message from friend.</p>
+        </div>
+        <div class="message sent">
+          <p>This is your message reply.</p>
+        </div>
+        <div class="message received">
+          <img src="user.png" alt="User"/>
+          <p>Another message from friend.</p>
+        </div>
+        <div class="message sent">
+          <p>Another reply from you.</p>
+        </div>
+      </div>
+      <div class="chat-input">
+        <input type="text" placeholder="Type your text and click send" />
+        <button>Send</button>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
