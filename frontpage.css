@@ -96,7 +96,6 @@ section {
 
 section img {
     width: 30vw;
-    /* max-width: 30vw; */
     height: auto;
 }
 
@@ -105,8 +104,7 @@ section h1 {
     color: #1e3c72;
     max-width: 500px;
     line-height: 1.4;
-    margin-bottom: 40px;
-
+    margin-bottom: 30px;
 }
 
 /* === Footer === */
@@ -119,4 +117,3 @@ footer {
     align-items: center;
     font-size: 14px;
 }
-
