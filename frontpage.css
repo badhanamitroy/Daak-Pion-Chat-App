@@ -37,6 +37,7 @@ header .left h1 {
   white-space: nowrap;
 }
 
+
 /* Right: Login Form */
 header .right form {
   display: flex;
@@ -48,13 +49,15 @@ header .right form {
   max-width: 600px;
 }
 
+/* Inputs container */
 #email,
 .password-field {
   flex: 1 1 180px;
   position: relative;
 }
 
-/* Inputs */
+
+/* Inputs (email & password) */
 header input[type='email'],
 .password-field input[type='password'],
 .password-field input[type='text'] {
@@ -64,6 +67,9 @@ header input[type='email'],
   border-radius: 8px;
   background-color: #f9f9f9;
   font-size: 14px;
+  line-height: 1.4;
+  height: 42px;             /* Fix consistent height */
+  box-sizing: border-box;   /* Ensure padding included in height */
   transition: border-color 0.2s, background-color 0.2s;
 }
 
@@ -74,7 +80,7 @@ header input:focus,
   outline: none;
 }
 
-/* Eye Icon */
+/* Eye Icon - fix vertical center inside password field */
 .password-field i {
   position: absolute;
   right: 12px;
@@ -85,11 +91,16 @@ header input:focus,
   font-size: 18px;
   user-select: none;
   transition: color 0.2s;
+  line-height: 1;           /* Prevent extra height */
+  height: 18px;             /* Fix icon height */
+  width: 18px;              /* Fix icon width */
 }
+
 
 .password-field i:hover {
   color: #1e3c72;
 }
+
 
 /* Buttons */
 #login-btn,
@@ -145,50 +156,22 @@ footer {
 }
 
 /* === Responsive Design === */
-
-/* Medium devices */
 @media (max-width: 768px) {
-  header {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 15px;
-  }
-
-  header .left {
-    justify-content: center;
-  }
-
-section img {
-  width: 50vw;
-  height: auto;
+    section img {
+        width: 50vw;
+        height: auto;
+    }
 }
-
-  header .right form {
-    justify-content: center;
-    max-width: 100%;
-    width: 100%;
-  }
-}
-
-/* Small devices */
 @media (max-width: 480px) {
-  header .right form {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-    width: 100%;
-    max-width: 100%;
-  }
-
-section img {
-  width: 70vw;
-  height: auto;
+    section img {
+        width: 50vw;
+        height: auto;
+    }
+}
+@media (max-width: 380px) {
+    section img {
+        width: 50vw;
+        height: auto;
+    }
 }
 
-  #email,
-  .password-field,
-  #login-btn {
-    width: 100%;
-  }
-}
