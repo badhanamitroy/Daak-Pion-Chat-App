@@ -35,8 +35,9 @@ header .left img {
 }
 
 header .left h1 {
-    font-size: 45px;
+    font-size: 40px;
     font-weight: 600;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 /* Header Right */
