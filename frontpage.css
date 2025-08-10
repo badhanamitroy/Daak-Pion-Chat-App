@@ -94,28 +94,24 @@ header .right input:focus,
     user-select: none;
 }
 
-.password-field i:hover,
-.password-field i:focus {
+.password-field i:hover, .password-field i:focus {
     color: #1e3c72;
     outline: none;
 }
 
 /* Buttons */
-#login-btn, 
-.sign-up {
+#login-btn, .sign-up {
     padding: 10px 20px;
     background: linear-gradient(135deg, #1e3c72, #2a5298);
     color: white;
     font-weight: 600;
     cursor: pointer;
     border-radius: 10px;
-    border: none;
-    transition: background 0.3s ease, border 0.3s ease;
+    border: 1px solid #1e3c72;
 }
 
 #login-btn:hover, 
 .sign-up:hover {
-    background: linear-gradient(135deg, #17407f, #264b8d);
     border: 1px solid white;
 }
 
