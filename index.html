@@ -1,39 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>DaakPion | Realtime Chatting App</title>
 
-    <link rel="stylesheet" href="frontpage.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="frontpage.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-sVhqp3qvqvfsGJclBccVnML3QW2AUsxE4h+zG6h+l7XG0AV6LChYkZyc3sO8MvxgP4i39C6qB+R1A9ZC7Jk8xg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
 </head>
 <body>
     <header>
         <div class="left">
-            <img src="Daak-pion.png" alt="">
+            <img src="Daak-pion.png" alt="DaakPion Logo" />
             <h1>DaakPion</h1>
         </div>
         <div class="right">
-            <form action="#" method="post">
-                <input type="email" name="" id="email" placeholder="Enter Email">
-                <input type="password" name="" id="password" placeholder="Enter password">
-                <input type="Submit" id="login-btn" value="Log in">
+            <form action="#" method="post" autocomplete="off">
+                <input type="email" id="email" name="email" placeholder="Enter Email" required />
+                <div class="field password-field">
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      placeholder="Enter password"
+                      required
+                      autocomplete="new-password"
+                    />
+                    <i
+                      class="fa-solid fa-eye"
+                      id="togglePassword"
+                      aria-label="Toggle password visibility"
+                      role="button"
+                      tabindex="0"
+                    ></i>
+                </div>
+                <input type="submit" id="login-btn" value="Log in" />
             </form>
         </div>
     </header>
     <section>
         <center>
-        <img src="banner.png" alt="">
-        <h1>Log in to your Account and let's get started</h1>
-        <a href="Register.html">
-        <button class="sign-up">Create New Account</button>
-        </a>
+            <img src="banner.png" alt="Banner" />
+            <h1>Log in to your Account and let's get started</h1>
+            <a href="Register.html">
+                <button class="sign-up">Create New Account</button>
+            </a>
         </center>
     </section>
     <footer>
         All Copyright reserved by &copy; Badhan Roy Amit
     </footer>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+        const togglePassword = document.getElementById("togglePassword");
+        const passwordInput = document.getElementById("password");
+
+        togglePassword.addEventListener("click", function () {
+            const isPassword = passwordInput.type === "password";
+            passwordInput.type = isPassword ? "text" : "password";
+
+            // Toggle the eye/eye-slash icon correctly
+            this.classList.toggle("fa-eye");
+            this.classList.toggle("fa-eye-slash");
+        });
+
+        // Optional: Allow toggle with keyboard (Enter/Space) for accessibility
+        togglePassword.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            this.click();
+            }
+        });
+        });
+
+    </script>
 </body>
 </html>

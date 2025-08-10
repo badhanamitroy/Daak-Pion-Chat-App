@@ -45,42 +45,78 @@ header form {
     gap: 12px;
     justify-content: flex-end;
     align-items: center;
+    flex-wrap: wrap;
 }
 
-header .right input {
-    padding: 10px 15px;
+#email,
+.password-field {
+    width: 40%;
+    position: relative; /* Required for absolute positioning of eye icon */
+}
+
+/* Email & Password Inputs */
+header .right input[type="email"],
+.password-field input[type="password"],
+.password-field input[type="text"] { /* text type when toggled */
+    width: 100%;
+    padding: 10px 45px 10px 15px; /* padding-right for icon */
     border: 1px solid #ccc;
     border-radius: 10px;
     background-color: #f9f9f9;
     font-size: 16px;
-    transition: 0.2s;
+    height: 42px; /* Fixed height */
+    box-sizing: border-box;
+    transition: border-color 0.2s, background-color 0.2s;
 }
 
-header .right input:focus {
+header .right input:focus,
+.password-field input:focus {
     border-color: #2a5298;
     background-color: #fff;
+    outline: none;
 }
 
-#email,
-#password {
-    width: 40%;
+/* Password Field Container */
+.password-field {
+    position: relative;
 }
 
-#login-btn, .sign-up {
-    width: auto;
+/* Eye Icon Styling */
+.password-field i {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #888;
+    font-size: 20px;
+    transition: color 0.2s;
+    user-select: none;
+}
+
+.password-field i:hover,
+.password-field i:focus {
+    color: #1e3c72;
+    outline: none;
+}
+
+/* Buttons */
+#login-btn, 
+.sign-up {
     padding: 10px 20px;
     background: linear-gradient(135deg, #1e3c72, #2a5298);
-    /* border: none; */
     color: white;
     font-weight: 600;
     cursor: pointer;
+    border-radius: 10px;
+    border: none;
+    transition: background 0.3s ease, border 0.3s ease;
 }
 
-#login-btn:hover, .sign-up:hover {
+#login-btn:hover, 
+.sign-up:hover {
     background: linear-gradient(135deg, #17407f, #264b8d);
     border: 1px solid white;
-    transition: background 0.3s ease;
-
 }
 
 /* === Banner Section === */

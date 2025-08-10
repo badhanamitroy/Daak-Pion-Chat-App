@@ -33,11 +33,39 @@ body {
   border-right: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.logo img {
-  width: 60px;
+.logo {
+  display: flex;
+  align-items: center; /* Vertically center */
+  justify-content: space-evenly; /* Equal spacing all around */
   margin-bottom: 20px;
   border-radius: 12px;
+  padding: 10px; /* optional for spacing */
 }
+
+.logo h1{
+  font-size: 30px;
+  padding-left: 10px;
+}
+
+.logo img {
+  width: 60px;
+  border-radius: 12px;
+}
+
+
+/* .logo {
+  display: flex;
+  align-items: center; /* Proper vertical centering */
+  /* 
+  margin-bottom: 20px;
+  border-radius: 12px;
+  justify-content: space-evenly;
+}
+/*
+.logo img {
+  width: 60px;
+  border-radius: 12px;
+} */
 
 .searching {
   display: flex;
@@ -333,10 +361,6 @@ body {
   .profile-info img {
     width: 30px;
     height: 30px;
-  }
-
-  .profile-info p {
-    display: none;
   }
 
   .profile-info button {
