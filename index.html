@@ -21,7 +21,7 @@
                     <input type="password" id="password" placeholder="Enter password">
                     <i class="fa-solid fa-eye" id="togglePassword"></i>
                 </div>
-                <input type="Submit" id="login-btn" value="Log in">
+                <input type="button" id="login-btn" value="Log in" onclick="loginRedirect()">
             </form>
         </div>
     </header>
@@ -39,6 +39,13 @@
     </footer>
 
     <script src="seepassword.js"></script>
+    
+    <script>
+        function loginRedirect() {
+            window.location.href = 'chatboard.html';
+        }
+    </script>
+
 
 </body>
 </html>

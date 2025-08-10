@@ -15,12 +15,14 @@
 
   <main class="profile-wrapper">
     <div class="cover-photo">
-      <span class="cover-text">Cover Image</span>
+      <img src="https://shorturl.at/Q6f6X" alt="Cover Photo">
     </div>
 
     <div class="profile-section">
       <div class="avatar-wrapper">
-        <div class="avatar">DP</div>
+        <div class="avatar">
+          <img src="https://shorturl.at/L42l5" alt="Profile Picture">
+        </div>
       </div>
 
       <div class="info-actions">
@@ -28,12 +30,19 @@
         <p class="friend-count">123 Friends</p>
 
         <div class="btn-group">
-          <button class="btn primary">Edit Profile</button>
+          <button class="btn primary" onclick="PrfEditRedirect()">Edit Profile</button>
           <button class="btn danger">Log Out</button>
         </div>
       </div>
     </div>
   </main>
 
+  <script>
+    function PrfEditRedirect(){
+      window.location.href='edit-profile.html';
+    }
+  </script>
+
+  
 </body>
 </html>
