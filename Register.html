@@ -17,32 +17,32 @@
                 </div>
             </header>
 
-            <form action="#" method="post">
+            <form action="php/registration.php" method="post">
                 <div class="error-txt">This is an error message!</div>
+
                 <div class="name-details">
                     <div class="field">
-                        <input type="text" name="" id="" placeholder="Enter Firstname">
+                        <input type="text" name="fname" placeholder="Enter Firstname" required>
                     </div>
                     <div class="field">
-                        <input type="text" name="" id="" placeholder="Enter Lastname">
+                        <input type="text" name="lname" placeholder="Enter Lastname" required>
                     </div>
                 </div>
-                    <div class="field">
-                        <input type="email" name="" id="" placeholder="Enter Email">
-                    </div>
-                    <!-- <div class="field">
-                        <input type="password" name="" id="" placeholder="Enter password">
-                        <i class="fa-solid fa-eye"></i>
-                    </div> -->
-                    <div class="field password-field">
-                        <input type="password" id="password" placeholder="Enter password">
-                        <i class="fa-solid fa-eye" id="togglePassword"></i>
-                    </div>
 
-                    <div class="field">
-                        <input type="Submit" value="Create Account">
-                    </div>
+                <div class="field">
+                    <input type="email" name="email" placeholder="Enter Email" required>
+                </div>
+
+                <div class="field password-field">
+                    <input type="password" name="password" id="password" placeholder="Enter Password" required>
+                    <i class="fa-solid fa-eye" id="togglePassword"></i>
+                </div>
+
+                <div class="field">
+                    <input type="submit" value="Create Account">
+                </div>
             </form>
+
             <div class="link">Already have an account? <a href="index.html">Login now</a></div>
 
         </section>
