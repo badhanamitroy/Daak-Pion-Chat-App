@@ -1,0 +1,202 @@
+/* Reset defaults */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === Header Styling === */
+header {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 40px;
+  height: 15vh;              /* Professional height */
+  color: #fff;
+  flex-wrap: wrap;
+  gap: 15px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Left: Logo & Title */
+header .left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+header .left img {
+  height: 55px;             /* Professional logo size */
+  width: auto;
+}
+
+header .left h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Right: Login Form */
+header .right form {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  width: 100%;
+  max-width: 650px;
+}
+
+/* Inputs container */
+#email,
+.password-field {
+  flex: 1 1 200px;
+  position: relative;
+}
+
+/* Inputs (email & password) */
+header input[type='email'],
+.password-field input[type='password'],
+.password-field input[type='text'] {
+  width: 100%;
+  padding: 12px 45px 12px 14px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background-color: #f9f9f9;
+  font-size: 15px;
+  line-height: 1.4;
+  height: 46px;             /* Consistent input height */
+  box-sizing: border-box;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+header input:focus,
+.password-field input:focus {
+  border-color: #2a5298;
+  background-color: #fff;
+  outline: none;
+}
+
+/* Eye Icon inside password field */
+.password-field i {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #666;
+  font-size: 18px;
+  user-select: none;
+  transition: color 0.2s;
+  height: 18px;
+  width: 18px;
+  line-height: 1;
+}
+
+.password-field i:hover {
+  color: #fff;
+}
+
+/* Buttons */
+#login-btn,
+.sign-up {
+  padding: 12px 20px;
+  background-color: #487ee4;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 10px;
+  border: 1px solid #1e3c72;
+  font-size: 15px;
+  transition: background 0.3s ease, border 0.3s ease;
+}
+
+#login-btn:hover,
+.sign-up:hover {
+  border: 1px solid white;
+  background: linear-gradient(135deg, #366bd6, #1e3c72);
+}
+
+/* === Banner Section === */
+/* section {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 40px;
+  background-color: #f2f6fa;
+  flex-wrap: wrap;
+} */
+
+section {
+    display: flex;
+    height: 80vh;
+    justify-content: space-around;
+    align-items: center;
+    padding: 37px 30px;
+    background-color: #f2f6fa;
+    flex-wrap: wrap;
+}
+
+section img {
+  width: 30vw;
+  height: auto;
+}
+
+section h1 {
+  font-size: 1.5rem;
+  color: #1e3c72;
+  margin: 20px 0;
+  line-height: 1.5;
+}
+
+/* === Footer === */
+footer {
+  background-color: #1e3c72;
+  color: #fff;
+  height: 5vh;                 /* Professional footer height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  padding: 12px 20px;
+  box-shadow: 0 -3px 6px rgba(0,0,0,0.1);
+}
+
+/* === Responsive Design === */
+@media (max-width: 768px) {
+    section img {
+        width: 50vw;
+    }
+    header {
+        padding: 15px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    header .right form {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    #login-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 380px) {
+    header .left h1 {
+        font-size: 1.4rem;
+    }
+    section img {
+        width: 70vw;
+    }
+}
