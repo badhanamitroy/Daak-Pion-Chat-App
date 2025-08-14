@@ -101,11 +101,11 @@ $userName = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : "User";
     </main>
   </div>
 
-      <!-- <script>
+      <script>
         function profileRedirect() {
-            window.location.href = 'user-profile.html';
+            window.location.href = 'user-profile.php';
         }
-    </script> -->
+    </script>
 
 </body>
 </html>

@@ -7,7 +7,11 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: index.html"); // Adjust to your login page URL
     exit;
 }
+
+// Optionally, get user info from session
+$userName = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : "User";
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -15,29 +19,30 @@ if (!isset($_SESSION['user_id'])) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Profile - DaakPion</title>
-  <link rel="stylesheet" href="user-profile.css" />
+  <link rel="stylesheet" href="../user-profile.css" />
 </head>
 <body>
 
   <header class="topbar">
     <div class="logo">DaakPion</div>
-    <a href="chatboard.html" class="back-chat-btn">Back to Chat</a>
+    <a href="chatboard.php" class="back-chat-btn">Back to Chat</a>
   </header>
 
   <main class="profile-wrapper">
     <div class="cover-photo">
-      <img src="https://shorturl.at/Q6f6X" alt="Cover Photo">
+      <img src="" alt="Add Cover Photo">
     </div>
 
     <div class="profile-section">
       <div class="avatar-wrapper">
         <div class="avatar">
-          <img src="https://shorturl.at/L42l5" alt="Profile Picture">
+            <img src="<?php echo htmlspecialchars($profilePic); ?>" alt="Profile">
+          <!-- <img src="../dp.png" alt="Profile Picture"> -->
         </div>
       </div>
 
       <div class="info-actions">
-        <h1 class="username">User Name</h1>
+        <h1 class="username"><?php echo htmlspecialchars($userName); ?></h1>
         <p class="friend-count">123 Friends</p>
 
         <div class="btn-group">
@@ -50,7 +55,7 @@ if (!isset($_SESSION['user_id'])) {
 
   <script>
     function PrfEditRedirect(){
-      window.location.href='edit-profile.html';
+      window.location.href='edit-profile.php';
     }
   </script>
 
