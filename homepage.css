@@ -125,17 +125,6 @@ header input:focus,
   background: linear-gradient(135deg, #366bd6, #1e3c72);
 }
 
-/* === Banner Section === */
-/* section {
-  display: flex;
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-  padding: 60px 40px;
-  background-color: #f2f6fa;
-  flex-wrap: wrap;
-} */
-
 section {
     display: flex;
     height: 80vh;

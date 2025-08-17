@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             VALUES ('{$fname}', '{$lname}', '{$email}', '{$hashedPassword}')";
 
     if (mysqli_query($conn, $sql)) {
-        echo "success";
+       echo '<script>window.location.href = "../index.html";</script>';
     } else {
         echo "Database error: " . mysqli_error($conn);
     }
