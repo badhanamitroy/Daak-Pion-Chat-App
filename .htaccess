@@ -1,0 +1,30 @@
+# DaakPion — Root .htaccess
+# Security headers and general hardening
+
+# ─── Disable directory listing ─────────────────────────────────────────────
+Options -Indexes
+
+# ─── HTTP Security Headers ──────────────────────────────────────────────────
+<IfModule mod_headers.c>
+    # Prevent browsers from MIME-sniffing away from declared content-type
+    Header always set X-Content-Type-Options "nosniff"
+
+    # Block the app from being embedded in iframes (clickjacking protection)
+    Header always set X-Frame-Options "SAMEORIGIN"
+
+    # Enable browser's built-in XSS filter (legacy, but harmless)
+    Header always set X-XSS-Protection "1; mode=block"
+
+    # Control referrer information sent with requests
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Restrict browser features not needed by this app
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>
+
+# ─── Cache control for PHP pages ────────────────────────────────────────────
+<FilesMatch "\.php$">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "no-store, no-cache, must-revalidate"
+    </IfModule>
+</FilesMatch>

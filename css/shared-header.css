@@ -1,0 +1,117 @@
+/* ==========================================================================
+   shared-header.css — DaakPion Shared Navbar (Facebook-style dark nav)
+   Included by: user-profile.php, friendlist.php
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --bg-nav:       #242526;
+  --bg-body:      #18191a;
+  --bg-surface:   #3a3b3c;
+  --text-primary: #e4e6eb;
+  --text-muted:   #b0b3b8;
+  --blue:         #1877f2;
+  --border:       rgba(255,255,255,0.1);
+  --font:         'Inter', Arial, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg-body);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+/* ── Sticky Top Nav ── */
+header {
+  background: var(--bg-nav);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.4);
+}
+
+/* Left: Logo + Brand */
+header .left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+header .left img {
+  height: 36px;
+  width: auto;
+  border-radius: 8px;
+}
+
+header .left h1 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--blue);
+  white-space: nowrap;
+  letter-spacing: -0.5px;
+}
+
+/* Right: Nav actions */
+header .right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+header .right a {
+  text-decoration: none;
+}
+
+header .right button,
+header .right .nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+  text-decoration: none;
+}
+
+header .right button:hover,
+header .right .nav-btn:hover {
+  background: #4e4f50;
+  transform: translateY(-1px);
+}
+
+header .right button.primary,
+header .right .nav-btn.primary {
+  background: var(--blue);
+  color: #fff;
+}
+header .right button.primary:hover,
+header .right .nav-btn.primary:hover {
+  background: #166fe5;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  header { padding: 0 14px; }
+  header .left h1 { font-size: 1.1rem; }
+  header .right button,
+  header .right .nav-btn { padding: 7px 10px; font-size: 12px; }
+}

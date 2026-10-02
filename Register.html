@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DaakPion — Create Account</title>
+  <meta name="description" content="Create your DaakPion account and start connecting with friends in real time.">
+  <link rel="stylesheet" href="Register.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+</head>
+<body>
+
+<div class="register-wrapper">
+
+  <!-- ── Left Panel: Branding ── -->
+  <div class="register-left">
+    <div class="brand-block">
+      <img src="Daak-pion-Dark-logo.png" alt="DaakPion Logo">
+      <span class="brand-name">DaakPion</span>
+    </div>
+    <h2>Join millions of people already connecting.</h2>
+    <p>Create your free account and start chatting with friends and family in real time.</p>
+    <ul class="feature-list">
+      <li>
+        <span class="feat-icon"><i class="fa-solid fa-comments"></i></span>
+        Real-time private messaging
+      </li>
+      <li>
+        <span class="feat-icon"><i class="fa-solid fa-user-group"></i></span>
+        Find &amp; connect with friends
+      </li>
+      <li>
+        <span class="feat-icon"><i class="fa-solid fa-user-shield"></i></span>
+        Secure &amp; private by design
+      </li>
+      <li>
+        <span class="feat-icon"><i class="fa-solid fa-bolt"></i></span>
+        Instant message delivery
+      </li>
+    </ul>
+  </div>
+
+  <!-- ── Right Panel: Registration Form ── -->
+  <div class="register-right">
+    <div class="form-header">
+      <h1>Create account</h1>
+      <p>It's quick and easy.</p>
+    </div>
+
+    <div class="error-txt" id="errorMsg"></div>
+
+    <form class="reg-form" id="regForm" action="php/registration.php" method="post" novalidate>
+      <div class="name-row">
+        <div class="field">
+          <input type="text" name="fname" placeholder="First name" required autocomplete="given-name">
+        </div>
+        <div class="field">
+          <input type="text" name="lname" placeholder="Last name" required autocomplete="family-name">
+        </div>
+      </div>
+
+      <div class="field">
+        <input type="email" name="email" placeholder="Email address" required autocomplete="email">
+      </div>
+
+      <div class="field password-field">
+        <input type="password" name="password" id="password" placeholder="New password" required autocomplete="new-password">
+        <i class="fa-solid fa-eye" id="togglePassword"></i>
+      </div>
+
+      <div class="field">
+        <button type="submit" class="btn-create" id="registerBtn">Create Account</button>
+      </div>
+    </form>
+
+    <div class="divider">or</div>
+
+    <div class="link">
+      Already have an account?
+      <a href="index.html" class="btn-login-link">Log In to DaakPion</a>
+    </div>
+  </div>
+
+</div>
+
+<script src="seepassword.js"></script>
+<script>
+  const regForm  = document.getElementById('regForm');
+  const errorMsg = document.getElementById('errorMsg');
+
+  regForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorMsg.textContent = '';
+    errorMsg.classList.remove('show');
+
+    const submitBtn = document.getElementById('registerBtn');
+    submitBtn.textContent = 'Creating account…';
+    submitBtn.disabled = true;
+
+    try {
+      const res  = await fetch('php/registration.php', { method: 'POST', body: new FormData(regForm) });
+      const json = await res.json();
+
+      if (json.success) {
+        window.location.href = 'index.html';
+      } else {
+        errorMsg.textContent = json.error || 'Something went wrong.';
+        errorMsg.classList.add('show');
+        submitBtn.textContent = 'Create Account';
+        submitBtn.disabled = false;
+      }
+    } catch (err) {
+      errorMsg.textContent = 'Network error. Please try again.';
+      errorMsg.classList.add('show');
+      submitBtn.textContent = 'Create Account';
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

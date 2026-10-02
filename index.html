@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DaakPion — Connect with Friends</title>
+  <meta name="description" content="DaakPion is a real-time chat app to connect with friends and family. Sign in or create an account today.">
+  <link rel="stylesheet" href="homepage.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+</head>
+<body>
+
+  <!-- ── Top Navigation ── -->
+  <nav class="topnav">
+    <a class="nav-brand" href="index.html">
+      <img src="Daak-pion.png" alt="DaakPion Logo">
+      <span>DaakPion</span>
+    </a>
+  </nav>
+
+  <!-- ── Hero Section ── -->
+  <main class="hero">
+
+    <!-- Left: Branding -->
+    <div class="hero-left">
+      <div class="brand-logo">
+        <img src="Daak-pion-Dark-logo.png" alt="DaakPion">
+        <span class="brand-name">DaakPion</span>
+      </div>
+      <h2>Connect with friends and the world around you.</h2>
+      <p>Real-time messaging, instant friend requests, and a seamless social experience — all in one place.</p>
+      <ul class="feature-list">
+        <li><i class="fa-solid fa-comments"></i> Real-time private messaging</li>
+        <li><i class="fa-solid fa-user-group"></i> Find and connect with friends</li>
+        <li><i class="fa-solid fa-bolt"></i> Instant notifications</li>
+        <li><i class="fa-solid fa-lock"></i> Secure &amp; private conversations</li>
+      </ul>
+    </div>
+
+    <!-- Right: Login Card -->
+    <div class="hero-right">
+      <div class="login-card">
+        <h1>Log in</h1>
+
+        <div class="error-msg" id="loginError"></div>
+
+        <form id="loginForm" action="php/userlogin.php" method="post">
+          <div class="form-group">
+            <input type="email" name="email" id="email" placeholder="Email address" required autocomplete="email">
+          </div>
+          <div class="form-group password-wrap">
+            <input type="password" name="password" id="password" placeholder="Password" required autocomplete="current-password">
+            <i class="fa-solid fa-eye eye-icon" id="togglePassword"></i>
+          </div>
+          <button type="submit" class="btn-login" id="login-btn">Log In</button>
+        </form>
+
+        <a href="#" class="forgot-link">Forgot password?</a>
+
+        <div class="divider">or</div>
+
+        <a href="Register.html" class="btn-register">Create new account</a>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer class="page-footer">
+    <p>
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Help</a>
+      &copy; 2026 DaakPion by Badhan Roy Amit
+    </p>
+  </footer>
+
+  <script src="seepassword.js"></script>
+</body>
+</html>

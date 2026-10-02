@@ -1,0 +1,25 @@
+# DaakPion .gitignore
+
+# PHP config with DB credentials — NEVER push to GitHub
+php/config.php
+php/db_connect.php
+
+# Uploaded user files (can be large; recreate locally)
+ProfilePics/*
+Coverpics/*
+
+# Keep the folders themselves (empty placeholder)
+!ProfilePics/.gitkeep
+!Coverpics/.gitkeep
+
+# OS & editor junk
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Antigravity / agent scratch files
+daakpion_analysis_and_plan.md
+daakpion_facebook_redesign_plan.md
