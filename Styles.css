@@ -1,0 +1,111 @@
+/* Reset some defaults */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.wrapper {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    padding: 30px 25px;
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease-in-out;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.logo img {
+    width: 150px;
+    margin-bottom: 10px;
+}
+
+header h2 {
+    font-size: 28px;
+    color: #333;
+    letter-spacing: 1px;
+}
+
+.form.signup {
+    width: 100%;
+}
+
+.error-txt {
+    background: #ffdddd;
+    color: #d8000c;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    display: none; /* Show via JS when needed */
+}
+
+.name-details {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.field {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.field input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    font-size: 16px;
+    transition: border-color 0.2s;
+}
+
+.field input:focus {
+    border-color: #1e3c72;
+    outline: none;
+    background-color: #fff;
+}
+
+.field input[type="submit"] {
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: white;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.field input[type="submit"]:hover {
+    background: linear-gradient(135deg, #17407f, #264b8d);
+}
+
+.link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 15px;
+}
+
+.link a {
+    color: #1e3c72;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.link a:hover {
+    color: #2a5298;
+}

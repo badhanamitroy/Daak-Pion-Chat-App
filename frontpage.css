@@ -1,0 +1,177 @@
+/* Reset defaults */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* === Header Styling === */
+header {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 20px;
+  color: #fff;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+/* Left: Logo & Title */
+header .left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+header .left img {
+  height: 45px;
+  width: auto;
+}
+
+header .left h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+
+/* Right: Login Form */
+header .right form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  width: 100%;
+  max-width: 600px;
+}
+
+/* Inputs container */
+#email,
+.password-field {
+  flex: 1 1 180px;
+  position: relative;
+}
+
+
+/* Inputs (email & password) */
+header input[type='email'],
+.password-field input[type='password'],
+.password-field input[type='text'] {
+  width: 100%;
+  padding: 10px 40px 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  font-size: 14px;
+  line-height: 1.4;
+  height: 42px;             /* Fix consistent height */
+  box-sizing: border-box;   /* Ensure padding included in height */
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+header input:focus,
+.password-field input:focus {
+  border-color: #2a5298;
+  background-color: #fff;
+  outline: none;
+}
+
+/* Eye Icon - fix vertical center inside password field */
+.password-field i {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #666;
+  font-size: 18px;
+  user-select: none;
+  transition: color 0.2s;
+  line-height: 1;           /* Prevent extra height */
+  height: 18px;             /* Fix icon height */
+  width: 18px;              /* Fix icon width */
+}
+
+
+.password-field i:hover {
+  color: #1e3c72;
+}
+
+
+/* Buttons */
+#login-btn,
+.sign-up {
+  padding: 10px 18px;
+  background-color: #487ee4;
+  /* background: linear-gradient(135deg, #487ee4, #2a5298); */
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  border: 1px solid #1e3c72;
+  font-size: 14px;
+  transition: background-color 0.3s ease, border 0.3s ease;
+}
+
+#login-btn:hover,
+.sign-up:hover {
+  border: 1px solid white;
+  background: linear-gradient(135deg, #366bd6, #1e3c72);
+}
+
+/* === Banner Section === */
+section {
+  display: flex;
+  height: 85vh;
+  justify-content: space-around;
+  align-items: center;
+  padding: 50px 30px;
+  background-color: #f2f6fa;
+  flex-wrap: wrap;
+}
+
+section img {
+  width: 30vw;
+  height: auto;
+}
+
+section h1 {
+  font-size: 1.3rem;
+  color: #1e3c72;
+  margin: 20px 0;
+  line-height: 1.4;
+}
+
+/* === Footer === */
+footer {
+  background-color: #1e3c72;
+  color: #fff;
+  text-align: center;
+  padding: 10px;
+  font-size: 13px;
+}
+
+/* === Responsive Design === */
+@media (max-width: 768px) {
+    section img {
+        width: 50vw;
+        height: auto;
+    }
+}
+@media (max-width: 480px) {
+    section img {
+        width: 50vw;
+        height: auto;
+    }
+}
+@media (max-width: 380px) {
+    section img {
+        width: 50vw;
+        height: auto;
+    }
+}
+

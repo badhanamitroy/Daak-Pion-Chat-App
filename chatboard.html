@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DaakPion Messenger</title>
+  <link rel="stylesheet" href="chatboard.css"/>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <img src="Daak-pion.png" alt="Logo"/>
+        <h1>DaakPion</h1>
+      </div>
+      <div class="searching">
+        <input type="text" placeholder="Search for your friend" class="search-bar"/>
+        <button class="Search-btn">Search</button>
+      </div>
+      <h2>Your Friends</h2>
+      <div class="friend-list">
+        <div class="friend">
+          <img src="https://shorturl.at/zKYZq" alt="Friend 1"/>
+          <span>Subhasree Ganguli</span>
+        </div>
+        <div class="friend">
+          <img src="f2.png" alt="Friend 2"/>
+          <span>Friend 2</span>
+        </div>
+        <div class="friend">
+          <img src="f3.png" alt="Friend 3"/>
+          <span>Friend 3</span>
+        </div>
+        <div class="friend">
+          <img src="f4.png" alt="Friend 4"/>
+          <span>Friend 4</span>
+        </div>
+        <div class="friend">
+          <img src="f5.png" alt="Friend 5"/>
+          <span>Friend 5</span>
+        </div>
+        <div class="friend">
+          <img src="f6.png" alt="Friend 6"/>
+          <span>Friend 6</span>
+        </div>
+      </div>
+      <div class="profile-info">
+        <img src="https://shorturl.at/qyWdI" alt="user" onclick="profileRedirect()">
+        <div class="profile-text">
+          <p class="profile-name">Dev Adhikari</p>
+          <!-- <p class="profile-role">Active now</p> -->
+        </div>
+        <button class="logout-btn">Logout</button>
+      </div>
+
+    </aside>
+
+    <!-- Chat Area -->
+    <main class="chat-area">
+      <div class="chat-header">
+        <img src="https://shorturl.at/zKYZq" alt="Friend"/>
+        <span>Subhasree Ganguli</span>
+      </div>
+      <div class="chat-box">
+        <div class="message received">
+          <img src="user.png" alt="User"/>
+          <p>This is a message from friend.</p>
+        </div>
+        <div class="message sent">
+          <p>This is your message reply.</p>
+        </div>
+        <div class="message received">
+          <img src="user.png" alt="User"/>
+          <p>Another message from friend.</p>
+        </div>
+        <div class="message sent">
+          <p>This is your message reply.</p>
+        </div>
+      </div>
+      <div class="chat-input">
+        <input type="text" placeholder="Type your text and click send" />
+        <button>Send</button>
+      </div>
+    </main>
+  </div>
+
+      <script>
+        function profileRedirect() {
+            window.location.href = 'user-profile.html';
+        }
+    </script>
+
+</body>
+</html>
