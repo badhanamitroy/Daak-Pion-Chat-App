@@ -1,0 +1,174 @@
+ * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: #f0f2f5;
+      color: #1c1e21;
+    }
+
+    header {
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 40px;
+        height: 15vh;              /* Professional height */
+        color: #fff;
+        flex-wrap: wrap;
+        gap: 15px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Left: Logo & Title */
+    header .left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    header .left img {
+        height: 55px;             /* Professional logo size */
+        width: auto;
+    }
+
+    header .left h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    /* Right: Login Form */
+    header .right button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+
+    /* Profile header */
+    .profile-card {
+      background: #fff;
+      padding: 15px 20px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      gap: 20px;
+    }
+
+    .profile-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex: 1;
+    }
+
+    .profile-info img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #ddd;
+    }
+
+    .search-bar {
+      flex: 1;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .search-bar input {
+      width: 100%;
+      max-width: 280px;
+      padding: 8px 12px;
+      border: 1px solid #ccd0d5;
+      border-radius: 20px;
+      outline: none;
+      font-size: 14px;
+      background: #f0f2f5;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .search-bar input:focus {
+      background: #fff;
+      border-color: #1877f2;
+      box-shadow: 0 0 4px rgba(24, 119, 242, 0.5);
+    }
+
+    /* Friends section */
+    .friends-section {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .friends-section h2 {
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+
+    .friends-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .friend-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      background: #f7f8fa;
+      border-radius: 10px;
+      transition: 0.2s;
+    }
+
+    .friend-card:hover {
+      background: #e7f0ff;
+    }
+
+    .friend-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .friend-info img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #ddd;
+    }
+
+    .chat-btn {
+      font-size: 20px;
+      color: #1877f2;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .chat-btn:hover {
+      transform: scale(1.1);
+    }
+
+    @media(max-width: 700px) {
+      .friends-grid {
+        grid-template-columns: 1fr;
+      }
+    }

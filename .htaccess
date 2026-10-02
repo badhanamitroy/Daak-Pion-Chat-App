@@ -22,9 +22,22 @@ Options -Indexes
     Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 </IfModule>
 
-# ─── Cache control for PHP pages ────────────────────────────────────────────
+# ─── Ensure proper MIME types for CSS and JS ────────────────────────────────
+<IfModule mod_mime.c>
+    AddType text/css .css
+    AddType application/javascript .js
+</IfModule>
+
+# ─── Cache control for CSS, JS and PHP ──────────────────────────────────────
+<FilesMatch "\.(css|js)$">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "no-cache, must-revalidate"
+    </IfModule>
+</FilesMatch>
+
 <FilesMatch "\.php$">
     <IfModule mod_headers.c>
         Header set Cache-Control "no-store, no-cache, must-revalidate"
     </IfModule>
 </FilesMatch>
+

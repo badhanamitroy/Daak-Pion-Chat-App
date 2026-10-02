@@ -41,9 +41,16 @@ $cntStmt->close();
   <title><?php echo htmlspecialchars($userName); ?> — DaakPion Profile</title>
   <meta name="description" content="View <?php echo htmlspecialchars($userName); ?>'s profile on DaakPion.">
 
-  <link rel="stylesheet" href="../css/shared-header.css" />
-  <link rel="stylesheet" href="../user-profile.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/shared-header.css?v=<?php echo time(); ?>" />
+  <link rel="stylesheet" href="../user-profile.css?v=<?php echo time(); ?>" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+<?php @readfile(__DIR__ . '/../css/shared-header.css'); ?>
+<?php @readfile(__DIR__ . '/../user-profile.css'); ?>
+  </style>
 </head>
 <body>
 
