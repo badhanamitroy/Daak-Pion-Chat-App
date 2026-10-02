@@ -27,18 +27,17 @@
   --font:         'Inter', Arial, sans-serif;
 }
 
-html, body {
+html {
+  color-scheme: dark;
+  background-color: var(--bg-body);
+}
+
+body {
   font-family: var(--font);
   height: 100%;
   min-height: 100vh;
   background: var(--bg-body);
   color: var(--text-primary);
-  animation: pageFadeIn 0.4s ease both;
-}
-
-@keyframes pageFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
 }
 
 /* ── Split Wrapper ── */

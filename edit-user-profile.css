@@ -24,17 +24,16 @@
   --font:         'Inter', Arial, sans-serif;
 }
 
-html, body {
+html {
+  color-scheme: dark;
+  background-color: var(--bg-body);
+}
+
+body {
   font-family: var(--font);
   background: var(--bg-body);
   color: var(--text-primary);
   min-height: 100vh;
-  animation: pageFadeIn 0.45s ease both;
-}
-
-@keyframes pageFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
 }
 
 /* ── Sticky Navbar ── */

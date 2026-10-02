@@ -136,6 +136,7 @@ if (isset($_POST['update_cover_pic']) && isset($_FILES['cover_pic'])) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
   <title><?php echo htmlspecialchars($userName); ?> | Edit Profile — DaakPion</title>
   <meta name="description" content="Edit your DaakPion profile — update your name, profile picture, and cover photo.">
   <link rel="preconnect" href="https://fonts.googleapis.com">

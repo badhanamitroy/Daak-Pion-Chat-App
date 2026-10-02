@@ -27,7 +27,11 @@
   --font:         'Inter', Arial, sans-serif;
 }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+  background-color: var(--bg-body);
+}
 
 body {
   font-family: var(--font);
@@ -36,12 +40,6 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  animation: pageFadeIn 0.5s ease both;
-}
-
-@keyframes pageFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
 }
 
 /* ── Navbar ── */
