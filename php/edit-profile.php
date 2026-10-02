@@ -134,75 +134,193 @@ if (isset($_POST['update_cover_pic']) && isset($_FILES['cover_pic'])) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title><?php echo htmlspecialchars($userName); ?> | Profile</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="../edit-user-profile.css">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><?php echo htmlspecialchars($userName); ?> | Edit Profile — DaakPion</title>
+  <meta name="description" content="Edit your DaakPion profile — update your name, profile picture, and cover photo.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="../edit-user-profile.css">
 </head>
 <body>
 
-<div class="profile-container">
-    <?php if ($uploadError): ?>
-        <div style="background:#e63946;color:#fff;padding:12px 20px;border-radius:8px;margin-bottom:14px;font-size:14px;font-family:Arial,sans-serif;">
-            <strong>Upload failed:</strong> <?php echo htmlspecialchars($uploadError); ?>
-        </div>
-    <?php endif; ?>
-    <!-- Cover Photo -->
-    <div class="cover-photo" style="background-image: url('<?php echo htmlspecialchars($coverPic); ?>');">
-        <form method="POST" enctype="multipart/form-data" class="cover-upload">
-            <label class="cover-btn">
+<!-- ── Sticky Navbar ── -->
+<nav class="edit-navbar">
+  <a class="nav-brand" href="../index.html">
+    <img src="../Daak-pion.png" alt="DaakPion Logo">
+    <span>DaakPion</span>
+  </a>
+  <div class="nav-actions">
+    <a class="nav-btn" href="user-profile.php">
+      <i class="fa-solid fa-arrow-left"></i> Back to Profile
+    </a>
+    <a class="nav-btn primary" href="chatboard.php">
+      <i class="fa-solid fa-comments"></i> Messenger
+    </a>
+  </div>
+</nav>
+
+<!-- ── Page ── -->
+<div class="edit-page">
+
+  <!-- Error banner -->
+  <?php if ($uploadError): ?>
+  <div class="alert-banner error">
+    <i class="fa-solid fa-circle-exclamation"></i>
+    <span><strong>Upload failed:</strong> <?php echo htmlspecialchars($uploadError); ?></span>
+  </div>
+  <?php endif; ?>
+
+  <!-- Page Title -->
+  <div class="page-title">
+    <i class="fa-solid fa-pen-to-square"></i>
+    Edit Profile
+  </div>
+
+  <!-- ════════════════════════════
+       CARD 1: Cover Photo
+  ════════════════════════════ -->
+  <div class="edit-card">
+    <div class="card-header">
+      <i class="fa-solid fa-image"></i>
+      <h2>Cover Photo</h2>
+    </div>
+    <div class="card-body">
+      <form method="POST" enctype="multipart/form-data" id="coverForm">
+        <input type="hidden" name="update_cover_pic" value="1">
+
+        <!-- Live preview click zone -->
+        <label for="coverInput">
+          <div class="cover-preview-wrap" title="Click to change cover photo">
+            <img id="coverPreview"
+                 src="<?php echo htmlspecialchars($coverPic); ?>"
+                 alt="Cover Photo">
+            <div class="cover-overlay">
+              <i class="fa-solid fa-camera"></i>
+              <span>Change Cover Photo</span>
+            </div>
+          </div>
+        </label>
+
+        <input type="file" id="coverInput" name="cover_pic"
+               accept="image/*" class="hidden-input"
+               onchange="previewImage(this, 'coverPreview'); submitWithDelay('coverForm')">
+
+        <p class="file-hint">
+          <i class="fa-solid fa-circle-info"></i>
+          JPG, PNG, GIF or WebP · Max 5 MB · Recommended: 820×312 px
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════
+       CARD 2: Profile Picture
+  ════════════════════════════ -->
+  <div class="edit-card">
+    <div class="card-header">
+      <i class="fa-solid fa-user-circle"></i>
+      <h2>Profile Picture</h2>
+    </div>
+    <div class="card-body">
+      <form method="POST" enctype="multipart/form-data" id="avatarForm">
+        <input type="hidden" name="update_profile_pic" value="1">
+
+        <div class="profile-pic-row">
+          <!-- Avatar preview -->
+          <label for="avatarInput">
+            <div class="avatar-preview-wrap" title="Click to change profile picture">
+              <img id="avatarPreview"
+                   src="<?php echo htmlspecialchars($profilePic); ?>"
+                   alt="Profile Picture">
+              <div class="avatar-overlay">
                 <i class="fa-solid fa-camera"></i>
-                <input type="file" name="cover_pic" accept="image/*" required hidden onchange="this.form.submit()">
+              </div>
+            </div>
+          </label>
+
+          <!-- Info + action -->
+          <div class="avatar-info">
+            <p>
+              Your profile picture is visible to all your friends.<br>
+              For best results, use a square image at least <strong>400×400 px</strong>.
+            </p>
+            <label for="avatarInput" class="btn-secondary" style="cursor:pointer;">
+              <i class="fa-solid fa-upload"></i> Upload New Photo
             </label>
-            <input type="hidden" name="update_cover_pic" value="1">
-        </form>
-    </div>
-
-    <!-- Profile Section -->
-    <div class="profile-section">
-        <div class="profile-pic">
-            <img src="<?php echo htmlspecialchars($profilePic); ?>" alt="Profile">
-            <form method="POST" enctype="multipart/form-data" class="profile-upload">
-                <label class="profile-btn">
-                    <i class="fa-solid fa-camera"></i>
-                    <input type="file" name="profile_pic" accept="image/*" required hidden onchange="this.form.submit()">
-                </label>
-                <input type="hidden" name="update_profile_pic" value="1">
-            </form>
+            <p class="file-hint" style="margin-top:8px;">JPG, PNG, GIF or WebP · Max 5 MB</p>
+          </div>
         </div>
 
-        <div class="profile-name">
-            <h1><?php echo htmlspecialchars($userName); ?>
-                <i class="fa-solid fa-pen-to-square edit-icon" onclick="document.getElementById('name-form').classList.toggle('show')"></i>
-            </h1>
-            <form id="name-form" method="POST">
-                <input type="text" name="fname" value="<?php echo htmlspecialchars($userfName); ?>" placeholder="First Name">
-                <input type="text" name="lname" value="<?php echo htmlspecialchars($userlName); ?>" placeholder="Last Name">
-                <button type="submit" name="update_name"><i class="fa-solid fa-check"></i> Save</button>
-            </form>
-        </div>
+        <input type="file" id="avatarInput" name="profile_pic"
+               accept="image/*" class="hidden-input"
+               onchange="previewImage(this, 'avatarPreview'); submitWithDelay('avatarForm')">
+      </form>
     </div>
-</div>
+  </div>
 
-<a href="user-profile.php" 
-   style="
-       position: fixed;
-       bottom: 20px;
-       left: 20px;
-       background-color: #4CAF50;
-       color: white;
-       padding: 12px 24px;
-       border-radius: 8px;
-       text-decoration: none;
-       font-size: 16px;
-       font-family: Arial, sans-serif;
-       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-   "
->
-    Back to Profile
-</a>
+  <!-- ════════════════════════════
+       CARD 3: Name
+  ════════════════════════════ -->
+  <div class="edit-card">
+    <div class="card-header">
+      <i class="fa-solid fa-id-card"></i>
+      <h2>Your Name</h2>
+    </div>
+    <div class="card-body">
+      <form method="POST" id="nameForm">
+        <div class="name-row">
+          <div class="form-field">
+            <label for="fname">First Name</label>
+            <input type="text" id="fname" name="fname"
+                   value="<?php echo htmlspecialchars($userfName); ?>"
+                   placeholder="First name" autocomplete="given-name">
+          </div>
+          <div class="form-field">
+            <label for="lname">Last Name</label>
+            <input type="text" id="lname" name="lname"
+                   value="<?php echo htmlspecialchars($userlName); ?>"
+                   placeholder="Last name" autocomplete="family-name">
+          </div>
+        </div>
+        <p class="file-hint">
+          <i class="fa-solid fa-circle-info"></i>
+          Your name appears on your profile and in search results.
+        </p>
+      </form>
+    </div>
+    <div class="card-footer">
+      <a href="user-profile.php" class="btn-secondary">
+        <i class="fa-solid fa-xmark"></i> Cancel
+      </a>
+      <button class="btn-primary" onclick="document.getElementById('nameForm').submit()">
+        <i class="fa-solid fa-check"></i> Save Changes
+      </button>
+      <input type="hidden" name="update_name" value="1" form="nameForm">
+    </div>
+  </div>
 
+</div><!-- /edit-page -->
+
+<script>
+// Live image preview before upload
+function previewImage(input, previewId) {
+  if (!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById(previewId).src = e.target.result;
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+// Submit form after a short delay so user sees the preview
+function submitWithDelay(formId) {
+  const btn = document.querySelector(`#${formId} .btn-primary`);
+  if (btn) { btn.classList.add('loading'); btn.disabled = true; }
+  setTimeout(() => {
+    document.getElementById(formId).submit();
+  }, 600);
+}
+</script>
 
 </body>
 </html>
