@@ -1,18 +1,23 @@
 <?php
-session_start();
-require_once "db_connect.php";
+require_once __DIR__ . "/bootstrap_security.php";
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../index.html");
     exit;
 }
 
+\Daakpion\Security\SessionManager::checkRestrictedAccess();
+
+
 $user_id = $_SESSION['user_id'];
 
 function must_prepare(mysqli $conn, string $sql, string $label) : mysqli_stmt {
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
-        die("$label prepare() failed: " . $conn->error . "\nSQL: " . $sql);
+        // Resolves DP-VULN-04: Log technical error details on the server, suppress SQL/table leakage to client
+        error_log("Database prepare error in {$label}: " . $conn->error . " | SQL: " . $sql);
+        http_response_code(500);
+        die("A system error occurred. Please try again later.");
     }
     return $stmt;
 }
@@ -95,6 +100,7 @@ $stmt->close();
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta name="csrf-token" content="<?php echo htmlspecialchars(\Daakpion\Security\CsrfProtection::getToken()); ?>" />
   <link rel="stylesheet" href="../css/shared-header.css?v=<?php echo time(); ?>" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
@@ -463,11 +469,15 @@ searchInput?.addEventListener('keyup', () => {
 document.querySelectorAll('.add-friend-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const receiverId = btn.dataset.id;
+    const csrfToken  = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     btn.style.pointerEvents = 'none'; // prevent double-click
     fetch('send_request.php', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'receiver_id=' + encodeURIComponent(receiverId)
+      headers: { 
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRF-Token': csrfToken
+      },
+      body: 'receiver_id=' + encodeURIComponent(receiverId) + '&csrf_token=' + encodeURIComponent(csrfToken)
     })
     .then(r => r.text())
     .then(msg => {
@@ -485,10 +495,14 @@ document.querySelectorAll('.add-friend-btn').forEach(btn => {
 
 // ── Accept / Decline Friend Request ─────────────────────────────────────────
 function respond(id, action) {
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
   fetch('respond_request.php', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'request_id=' + encodeURIComponent(id) + '&action=' + encodeURIComponent(action)
+    headers: { 
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-CSRF-Token': csrfToken
+    },
+    body: 'request_id=' + encodeURIComponent(id) + '&action=' + encodeURIComponent(action) + '&csrf_token=' + encodeURIComponent(csrfToken)
   })
   .then(r => r.text())
   .then(msg => {

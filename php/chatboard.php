@@ -1,11 +1,13 @@
 <?php
-session_start();
-require_once "db_connect.php"; 
+require_once __DIR__ . "/bootstrap_security.php";
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: index.html");
+    header("Location: ../index.html");
     exit;
 }
+
+\Daakpion\Security\SessionManager::checkRestrictedAccess();
+
 
 $user_id = $_SESSION['user_id'];
 
@@ -50,6 +52,7 @@ $stmt->close();
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<meta name="csrf-token" content="<?php echo htmlspecialchars(\Daakpion\Security\CsrfProtection::getToken()); ?>" />
 <link rel="stylesheet" href="../chatboard.css?v=<?php echo time()?>"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"/>
 <style>
@@ -262,13 +265,24 @@ function startPolling() {
 function doSend() {
   const msg = chatInput.value.trim();
   if (!msg || !currentFriendId) return;
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
   fetch('send_message.php', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `receiver_id=${currentFriendId}&message=${encodeURIComponent(msg)}`
-  }).then(res => res.text()).then(() => {
+    headers: { 
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-CSRF-Token': csrfToken
+    },
+    body: `receiver_id=${currentFriendId}&message=${encodeURIComponent(msg)}&csrf_token=${encodeURIComponent(csrfToken)}`
+  }).then(async res => {
+    if (!res.ok) {
+      const errText = await res.text();
+      alert(errText || 'Failed to send message.');
+      return;
+    }
     chatInput.value = '';
     loadMessages(currentFriendId, false);
+  }).catch(err => {
+    console.error('Send error:', err);
   });
 }
 sendBtn.addEventListener('click', doSend);

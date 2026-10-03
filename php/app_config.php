@@ -20,9 +20,15 @@ define('ALLOWED_MIME_TYPES', [                               // Whitelist of MIM
 ]);
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'gif', 'webp']); // Extension whitelist
 
+// ─── Security Secrets Loader ────────────────────────────────────────────────
+if (file_exists(__DIR__ . '/security_secrets.php')) {
+    require_once __DIR__ . '/security_secrets.php';
+}
+
 // ─── Password Policy ────────────────────────────────────────────────────────
-define('MIN_PASSWORD_LENGTH', 8);
+define('MIN_PASSWORD_LENGTH', 12);
 
 // ─── Session Security ───────────────────────────────────────────────────────
-define('SESSION_LIFETIME_SECONDS', 3600); // 1 hour idle timeout
+define('SESSION_LIFETIME_SECONDS', 1800); // 30 minutes idle timeout
+
 ?>

@@ -1,21 +1,21 @@
 <?php
-// logout.php
-session_start();
-require_once "db_connect.php";
+// logout.php — Hardened session termination
+declare(strict_types=1);
 
-// Step 3 bonus: Mark user as offline before destroying the session
-if (isset($_SESSION['user_id'])) {
-    $userId = (int)$_SESSION['user_id'];
-    $stmt   = $conn->prepare("UPDATE users SET status = 'Offline' WHERE id = ?");
-    $stmt->bind_param("i", $userId);
-    $stmt->execute();
-    $stmt->close();
+require_once __DIR__ . '/bootstrap_security.php';
+
+use Daakpion\Security\SessionManager;
+use Daakpion\Security\AuditLogger;
+
+$logger = new AuditLogger($conn);
+$userId = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
+$email  = $_SESSION['user_email'] ?? null;
+
+if ($userId) {
+    $logger->log('LOGOUT', 'SUCCESS', $userId, $email);
 }
 
-session_unset();
-session_destroy();
+SessionManager::destroySession($conn);
 
-// Redirect to login page
 header("Location: ../index.html");
 exit;
-?>

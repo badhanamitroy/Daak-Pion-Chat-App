@@ -23,3 +23,9 @@ Thumbs.db
 # Antigravity / agent scratch files
 daakpion_analysis_and_plan.md
 daakpion_facebook_redesign_plan.md
+
+# Security secrets and logs — NEVER push to GitHub
+php/security_secrets.php
+.env
+logs/
+

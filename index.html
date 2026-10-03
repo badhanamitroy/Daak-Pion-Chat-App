@@ -57,7 +57,7 @@
           <button type="submit" class="btn-login" id="login-btn">Log In</button>
         </form>
 
-        <a href="#" class="forgot-link">Forgot password?</a>
+        <a href="php/forgot_password.php" class="forgot-link">Forgot password?</a>
 
         <div class="divider">or</div>
 
@@ -78,5 +78,54 @@
   </footer>
 
   <script src="seepassword.js"></script>
+  <script>
+    // Handle error message passed via query param (e.g. from standard form redirects)
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorParam = urlParams.get('error');
+    const loginError = document.getElementById('loginError');
+    if (errorParam && loginError) {
+      loginError.textContent = errorParam;
+      loginError.classList.add('show');
+    }
+
+    // Smooth asynchronous login with instant generic error feedback
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('login-btn');
+
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        loginError.textContent = '';
+        loginError.classList.remove('show');
+        loginBtn.textContent = 'Logging in…';
+        loginBtn.disabled = true;
+
+        try {
+          const formData = new FormData(loginForm);
+          const res = await fetch('php/userlogin.php', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+
+          const data = await res.json();
+          if (data.success && data.redirect) {
+            window.location.href = data.redirect.startsWith('php/') ? data.redirect : 'php/' + data.redirect;
+          } else {
+            loginError.textContent = data.message || 'Invalid email or password.';
+            loginError.classList.add('show');
+            loginBtn.textContent = 'Log In';
+            loginBtn.disabled = false;
+          }
+        } catch (err) {
+          // If JSON parse or network fails, fallback to traditional submit
+          loginForm.submit();
+        }
+      });
+    }
+  </script>
 </body>
 </html>
+

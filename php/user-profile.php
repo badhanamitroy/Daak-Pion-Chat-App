@@ -1,12 +1,14 @@
 <?php
 // user-profile.php
-session_start();
-require_once "db_connect.php";
+require_once __DIR__ . "/bootstrap_security.php";
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../index.html");
     exit;
 }
+
+\Daakpion\Security\SessionManager::checkRestrictedAccess();
+
 
 $user_id = (int)$_SESSION['user_id'];
 

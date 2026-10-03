@@ -1,14 +1,20 @@
 <?php
-session_start();
-require_once "db_connect.php";
-require_once "app_config.php"; // Centralized secrets (Step 2.5)
+require_once __DIR__ . "/bootstrap_security.php";
 
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(401);
+    header('Content-Type: application/json');
+    exit(json_encode([]));
+}
 
-if (!isset($_SESSION['user_id']) || !isset($_GET['friend_id'])) {
+\Daakpion\Security\SessionManager::checkRestrictedAccess();
+
+if (!isset($_GET['friend_id'])) {
     http_response_code(400);
     header('Content-Type: application/json');
     exit(json_encode([]));
 }
+
 
 $user_id   = (int)$_SESSION['user_id'];
 $friend_id = (int)$_GET['friend_id'];

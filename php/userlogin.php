@@ -1,58 +1,182 @@
 <?php
-// userlogin.php
-session_start(); // FIX BUG-04: Must be the very first call
-require_once "db_connect.php"; // Single shared DB connection
+// userlogin.php — Hardened authentication endpoint
+declare(strict_types=1);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email    = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
+require_once __DIR__ . '/bootstrap_security.php';
 
-    // Validate inputs
-    if (empty($email) || empty($password)) {
-        echo "Email and password are required!";
-        exit;
-    }
+use Daakpion\Security\CryptoService;
+use Daakpion\Security\SessionManager;
+use Daakpion\Security\RateLimiter;
+use Daakpion\Security\AuditLogger;
+use Daakpion\Security\TwoFactorService;
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        echo "Invalid email format!";
-        exit;
-    }
+header('X-Content-Type-Options: nosniff');
 
-    // Fetch user by email using prepared statement
-    $stmt = $conn->prepare("SELECT id, fname, lname, password FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
+$isAjax = (!empty($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false)
+       || (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
 
-    if ($result->num_rows === 1) {
-        $row = $result->fetch_assoc();
-        $stmt->close();
-
-        // Verify hashed password
-        if (password_verify($password, $row['password'])) {
-            // Update user status to 'Active now'
-            $upd = $conn->prepare("UPDATE users SET status = 'Active now' WHERE id = ?");
-            $upd->bind_param("i", $row['id']);
-            $upd->execute();
-            $upd->close();
-
-            // Prevent session fixation: issue a new session ID after successful auth
-            session_regenerate_id(true);
-
-            // Store user info in session
-            $_SESSION['user_id']   = $row['id'];
-            $_SESSION['user_name'] = $row['fname'] . ' ' . $row['lname'];
-
-            header("Location: chatboard.php");
-            exit;
-        } else {
-            echo "Incorrect password!";
+function respond(bool $success, string $message, ?string $redirect = null, array $extra = []) use ($isAjax): void {
+    if ($isAjax) {
+        header('Content-Type: application/json');
+        if (!$success) {
+            http_response_code(401);
         }
-    } else {
-        $stmt->close();
-        echo "User not found!";
+        echo json_encode(array_merge([
+            'success'  => $success,
+            'message'  => $message,
+            'redirect' => $redirect
+        ], $extra));
+        exit;
     }
-} else {
-    echo "Invalid request!";
+
+    if ($success && $redirect) {
+        header("Location: {$redirect}");
+        exit;
+    }
+
+    // Direct POST fallback: redirect back to index.html with generic error parameter
+    header("Location: ../index.html?error=" . urlencode($message));
+    exit;
 }
-?>
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    respond(false, "Invalid request method.");
+}
+
+$email    = trim($_POST['email'] ?? '');
+$password = (string)($_POST['password'] ?? '');
+
+$clientIp    = RateLimiter::getClientIp();
+$rateLimiter = new RateLimiter($conn);
+$logger      = new AuditLogger($conn);
+
+// ── 1. Brute-Force Rate Limiting (IP & Email dimensions) ──────────────────────
+$ipKey    = RateLimiter::buildKey('login_ip', $clientIp);
+$emailKey = RateLimiter::buildKey('login_email', $email !== '' ? $email : 'unknown');
+
+$ipBlocked    = $rateLimiter->isBlocked($ipKey, $retryAfterIp);
+$emailBlocked = $rateLimiter->isBlocked($emailKey, $retryAfterEmail);
+
+if ($ipBlocked || $emailBlocked) {
+    $retryAfter = max($retryAfterIp, $retryAfterEmail);
+    $logger->log('LOGIN_RATE_LIMITED', 'BLOCKED', null, $email, [
+        'retry_after' => $retryAfter,
+        'ip'          => $clientIp
+    ]);
+    respond(false, "Too many failed attempts. Please wait {$retryAfter} seconds before trying again.");
+}
+
+// ── 2. Input Validation ───────────────────────────────────────────────────────
+if (empty($email) || empty($password)) {
+    respond(false, "Invalid email or password.");
+}
+
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    CryptoService::dummyVerify();
+    $rateLimiter->hit($ipKey, 10, 900, 900);
+    $logger->log('LOGIN_FAILURE', 'INVALID_EMAIL_FORMAT', null, $email);
+    respond(false, "Invalid email or password.");
+}
+
+// ── 3. User Lookup (Prepared Statement) ───────────────────────────────────────
+$stmt = $conn->prepare("SELECT id, fname, lname, email, password, password_version, is_temporary_password, temp_password_expires_at, two_factor_enabled FROM users WHERE email = ?");
+if (!$stmt) {
+    respond(false, "Authentication service temporarily unavailable.");
+}
+
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result();
+$user   = $result->fetch_assoc();
+$stmt->close();
+
+// ── 4. Nonexistent Account Defense (Constant-Time Dummy Verification) ─────────
+if (!$user) {
+    // Constant-time execution prevents timing attacks & enumeration
+    CryptoService::dummyVerify();
+    $rateLimiter->hit($ipKey, 10, 900, 900);
+    $rateLimiter->hit($emailKey, 5, 900, 900);
+    $logger->log('LOGIN_FAILURE', 'USER_NOT_FOUND', null, $email);
+    respond(false, "Invalid email or password.");
+}
+
+$userId = (int)$user['id'];
+
+// ── 5. Password Verification & Migration ──────────────────────────────────────
+$needsRehash = false;
+$isValid = CryptoService::verifyPassword($password, $user['password'], $needsRehash);
+
+if (!$isValid) {
+    $rateLimiter->hit($ipKey, 10, 900, 900);
+    $rateLimiter->hit($emailKey, 5, 900, 900);
+    $logger->log('LOGIN_FAILURE', 'BAD_CREDENTIALS', $userId, $email);
+    respond(false, "Invalid email or password.");
+}
+
+// ── 6. Check Temporary Password Expiration ───────────────────────────────────
+if (!empty($user['is_temporary_password']) && !empty($user['temp_password_expires_at'])) {
+    if (strtotime($user['temp_password_expires_at']) < time()) {
+        $logger->log('LOGIN_FAILURE', 'TEMP_PASSWORD_EXPIRED', $userId, $email);
+        respond(false, "This temporary password has expired. Please reset your password.");
+    }
+}
+
+// ── 7. Password Rehashing / Legacy Bcrypt Migration ───────────────────────────
+// If user has a legacy bcrypt hash or Argon2id parameters need updating, rehash now!
+if ($needsRehash) {
+    $newHash = CryptoService::hashPassword($password);
+    $updHash = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+    if ($updHash) {
+        $updHash->bind_param("si", $newHash, $userId);
+        $updHash->execute();
+        $updHash->close();
+        $logger->log('PASSWORD_REHASHED', 'MIGRATED_TO_ARGON2ID', $userId, $email);
+    }
+}
+
+// Clear rate limits on successful password verification
+$rateLimiter->clear($ipKey);
+$rateLimiter->clear($emailKey);
+
+// ── 8. 2FA / OTP Verification Flow ───────────────────────────────────────────
+if (!empty($user['two_factor_enabled'])) {
+    $twoFactor = new TwoFactorService($conn, $logger);
+    $rawOtp = $twoFactor->issueOtp($userId, $email);
+
+    // Store pre-auth state in session
+    $_SESSION['2fa_preauth_user_id'] = $userId;
+    $_SESSION['2fa_preauth_email']   = $email;
+    $_SESSION['2fa_preauth_user']    = $user;
+
+    // For local development demonstration, we pass dev_otp if local
+    $extra = [];
+    if ($_SERVER['SERVER_NAME'] === 'localhost' || $_SERVER['REMOTE_ADDR'] === '127.0.0.1' || $_SERVER['REMOTE_ADDR'] === '::1') {
+        $extra['dev_otp'] = $rawOtp;
+    }
+
+    respond(true, "Two-factor verification required.", "verify_2fa.php", $extra);
+}
+
+// ── 9. Finalize Authenticated Session ────────────────────────────────────────
+$isTemp = !empty($user['is_temporary_password']);
+
+// Update user status
+$updStatus = $conn->prepare("UPDATE users SET status = 'Active now' WHERE id = ?");
+if ($updStatus) {
+    $updStatus->bind_param("i", $userId);
+    $updStatus->execute();
+    $updStatus->close();
+}
+
+SessionManager::loginUser($user, $isTemp);
+
+$logger->log('LOGIN_SUCCESS', 'SUCCESS', $userId, $email, [
+    'is_temporary' => $isTemp
+]);
+
+if ($isTemp) {
+    $logger->log('TEMPORARY_PASSWORD_CONSUMED', 'RESTRICTED_SESSION_STARTED', $userId, $email);
+    respond(true, "Temporary login. Password change required.", "force_change_password.php");
+}
+
+respond(true, "Login successful.", "chatboard.php");
