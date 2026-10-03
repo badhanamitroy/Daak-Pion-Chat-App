@@ -23,18 +23,27 @@ $userName   = trim(($user['fname'] ?? "User") . " " . ($user['lname'] ?? ""));
 $profilePic = !empty($user['dp']) ? "../" . $user['dp'] : "../ProfilePics/default.jpg";
 $coverPic   = !empty($user['coverpic']) ? "../" . $user['coverpic'] : "../Coverpics/default.jpg";
 
-// --- Fetch Friends ---
+// --- Fetch Friends with Presence State (Resolves DP-P4-009) ---
 $friends = [];
 $sql = "
-(SELECT u.id, u.fname, u.lname, u.dp 
+(SELECT u.id, u.fname, u.lname, u.dp,
+        (CASE WHEN u.status != 'Offline' 
+                   AND u.last_activity_at IS NOT NULL 
+                   AND TIMESTAMPDIFF(SECOND, u.last_activity_at, NOW()) <= 120 
+              THEN 1 ELSE 0 END) AS is_online
  FROM friends f 
  JOIN users u ON u.id = f.user2_id 
  WHERE f.user1_id=? AND f.status='active')
 UNION
-(SELECT u.id, u.fname, u.lname, u.dp 
+(SELECT u.id, u.fname, u.lname, u.dp,
+        (CASE WHEN u.status != 'Offline' 
+                   AND u.last_activity_at IS NOT NULL 
+                   AND TIMESTAMPDIFF(SECOND, u.last_activity_at, NOW()) <= 120 
+              THEN 1 ELSE 0 END) AS is_online
  FROM friends f 
  JOIN users u ON u.id = f.user1_id 
  WHERE f.user2_id=? AND f.status='active')
+LIMIT 100
 ";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("ii", $user_id, $user_id);
@@ -99,11 +108,12 @@ $stmt->close();
         <?php foreach($friends as $fr): ?>
         <div class="friend-card" data-id="<?php echo (int)$fr['id']; ?>"
              data-name="<?php echo htmlspecialchars($fr['fname'].' '.$fr['lname']); ?>"
-             data-img="<?php echo !empty($fr['dp']) ? '../'.htmlspecialchars($fr['dp']) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png'; ?>">
+             data-img="<?php echo !empty($fr['dp']) ? '../'.htmlspecialchars($fr['dp']) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png'; ?>"
+             data-online="<?php echo !empty($fr['is_online']) ? '1' : '0'; ?>">
           <div class="friend-avatar-wrap">
             <img src="<?php echo !empty($fr['dp']) ? '../'.htmlspecialchars($fr['dp']) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png'; ?>"
                  alt="<?php echo htmlspecialchars($fr['fname'].' '.$fr['lname']); ?>"/>
-            <span class="online-dot"></span>
+            <span class="online-dot" id="dot-<?php echo (int)$fr['id']; ?>" style="<?php echo !empty($fr['is_online']) ? '' : 'display:none;'; ?>"></span>
           </div>
           <div class="friend-text">
             <div class="friend-name"><?php echo htmlspecialchars($fr['fname'].' '.$fr['lname']); ?></div>
@@ -120,6 +130,7 @@ $stmt->close();
       <img src="<?php echo htmlspecialchars($profilePic); ?>" alt="Profile" onclick="profileRedirect()" title="My Profile"/>
       <span class="footer-name" onclick="profileRedirect()"><?php echo htmlspecialchars($userName); ?></span>
       <form method="post" action="logout.php" class="logout-form">
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(\Daakpion\Security\CsrfProtection::getToken()); ?>" />
         <button class="logout-btn" type="submit" name="logout" title="Log Out">
           <i class="fa-solid fa-right-from-bracket"></i>
         </button>
@@ -138,7 +149,7 @@ $stmt->close();
       </div>
       <div class="chat-header-info">
         <div id="chatHeaderName" class="chat-header-placeholder">Select a conversation</div>
-        <div id="chatHeaderStatus" style="display:none;">Active now</div>
+        <div id="chatHeaderStatus" style="display:none;">Offline</div>
       </div>
     </div>
 
@@ -196,12 +207,18 @@ friendCards.forEach(card => {
 
     const friendName = card.dataset.name || 'Friend';
     const friendImg  = card.dataset.img  || '';
+    const isOnline   = card.dataset.online === '1';
 
     chatHeaderName.textContent = friendName;
     chatHeaderName.classList.remove('chat-header-placeholder');
     chatHeaderImg.src  = friendImg;
     chatHeaderImg.style.display = 'block';
+
+    // Set initial presence from card and fetch latest server status (Resolves DP-P4-009)
+    chatHeaderStatus.textContent = isOnline ? 'Active now' : 'Offline';
+    chatHeaderStatus.style.color = isOnline ? '#31a24c' : 'var(--text-muted, #888)';
     chatHeaderStatus.style.display = 'block';
+    updateFriendPresence(currentFriendId);
 
     chatBox.innerHTML = '<p class="muted">Loading messages...</p>';
     loadMessages(currentFriendId, true);
@@ -240,13 +257,79 @@ function loadMessages(friendId, isInitialLoad = false) {
     .catch(err => console.error('loadMessages error:', err));
 }
 
-// --- Poll every 3 seconds ---
+// --- Poll every 3 seconds for messages and friend presence ---
 function startPolling() {
   if (pollTimer) clearInterval(pollTimer);
   pollTimer = setInterval(() => {
-    if (currentFriendId) loadMessages(currentFriendId, false);
+    if (currentFriendId) {
+      loadMessages(currentFriendId, false);
+      updateFriendPresence(currentFriendId);
+    }
   }, 3000);
 }
+
+// --- Presence & Heartbeat Tracking (Resolves DP-P4-009) ---
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+function updateFriendPresence(friendId) {
+  if (!friendId) return;
+  fetch(`get_presence.php?friend_id=${friendId}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data && currentFriendId == friendId) {
+        chatHeaderStatus.textContent = data.status_text || 'Offline';
+        chatHeaderStatus.style.color = data.is_online ? '#31a24c' : 'var(--text-muted, #888)';
+        const dot = document.getElementById(`dot-${friendId}`);
+        if (dot) dot.style.display = data.is_online ? 'block' : 'none';
+        const card = document.querySelector(`.friend-card[data-id="${friendId}"]`);
+        if (card) card.dataset.online = data.is_online ? '1' : '0';
+      }
+    })
+    .catch(() => {});
+}
+
+function updateAllPresence() {
+  fetch('get_presence.php')
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.presence) {
+        for (const [fid, p] of Object.entries(data.presence)) {
+          const dot = document.getElementById(`dot-${fid}`);
+          if (dot) dot.style.display = p.is_online ? 'block' : 'none';
+          const card = document.querySelector(`.friend-card[data-id="${fid}"]`);
+          if (card) card.dataset.online = p.is_online ? '1' : '0';
+          if (currentFriendId == fid) {
+            chatHeaderStatus.textContent = p.status_text;
+            chatHeaderStatus.style.color = p.is_online ? '#31a24c' : 'var(--text-muted, #888)';
+          }
+        }
+      }
+    })
+    .catch(() => {});
+}
+
+function sendHeartbeat() {
+  if (!csrfToken) return;
+  const formData = new FormData();
+  formData.append('csrf_token', csrfToken);
+  fetch('heartbeat.php', {
+    method: 'POST',
+    headers: { 'X-CSRF-Token': csrfToken },
+    body: formData
+  }).catch(() => {});
+}
+
+sendHeartbeat();
+setInterval(sendHeartbeat, 30000);
+setInterval(updateAllPresence, 10000);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    sendHeartbeat();
+    if (currentFriendId) updateFriendPresence(currentFriendId);
+    updateAllPresence();
+  }
+});
 
 // --- Auto-open from URL ?friend_id=X ---
 (function autoOpenFromUrl() {

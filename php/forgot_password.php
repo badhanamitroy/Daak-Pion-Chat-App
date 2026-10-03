@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = trim($_POST['email'] ?? '');
         $res = $service->requestReset($email);
         $message = $res['message'];
-        if (!empty($res['dev_token'])) {
+        if (!empty($res['dev_token']) && \Daakpion\Security\Environment::allowDevSecrets()) {
             $devToken = $res['dev_token'];
         }
     }
@@ -168,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <i class="fa-solid fa-circle-check"></i> <?php echo htmlspecialchars($message); ?>
     </div>
 
-    <?php if ($devToken): ?>
+    <?php if ($devToken && \Daakpion\Security\Environment::allowDevSecrets()): ?>
       <div class="dev-box">
         <strong><i class="fa-solid fa-laptop-code"></i> Local Dev Simulated Reset Link:</strong><br>
         <a href="reset_password.php?token=<?php echo urlencode($devToken); ?>">Click here to proceed to Password Reset Form</a>

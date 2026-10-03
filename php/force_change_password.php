@@ -276,9 +276,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </button>
   </form>
 
-  <a href="logout.php" class="logout-link">
-    <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
-  </a>
+  <form method="post" action="logout.php" style="margin-top: 16px; text-align: center;">
+    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(\Daakpion\Security\CsrfProtection::getToken()); ?>" />
+    <button type="submit" class="logout-link" style="background: none; border: none; cursor: pointer; font: inherit; color: inherit; padding: 0;">
+      <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
+    </button>
+  </form>
 </div>
 
 </body>

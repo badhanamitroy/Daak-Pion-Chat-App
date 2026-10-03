@@ -15,7 +15,8 @@ header('X-Content-Type-Options: nosniff');
 $isAjax = (!empty($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false)
        || (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
 
-function respond(bool $success, string $message, ?string $redirect = null, array $extra = []) use ($isAjax): void {
+function respond(bool $success, string $message, ?string $redirect = null, array $extra = []): void {
+    global $isAjax;
     if ($isAjax) {
         header('Content-Type: application/json');
         if (!$success) {
@@ -148,9 +149,9 @@ if (!empty($user['two_factor_enabled'])) {
     $_SESSION['2fa_preauth_email']   = $email;
     $_SESSION['2fa_preauth_user']    = $user;
 
-    // For local development demonstration, we pass dev_otp if local
+    // In explicit development/test mode, attach dev_otp to enable automated testing
     $extra = [];
-    if ($_SERVER['SERVER_NAME'] === 'localhost' || $_SERVER['REMOTE_ADDR'] === '127.0.0.1' || $_SERVER['REMOTE_ADDR'] === '::1') {
+    if (\Daakpion\Security\Environment::allowDevSecrets()) {
         $extra['dev_otp'] = $rawOtp;
     }
 
@@ -160,8 +161,8 @@ if (!empty($user['two_factor_enabled'])) {
 // ── 9. Finalize Authenticated Session ────────────────────────────────────────
 $isTemp = !empty($user['is_temporary_password']);
 
-// Update user status
-$updStatus = $conn->prepare("UPDATE users SET status = 'Active now' WHERE id = ?");
+// Update user status and activity timestamp (Resolves DP-P4-009)
+$updStatus = $conn->prepare("UPDATE users SET status = 'Active now', last_activity_at = NOW() WHERE id = ?");
 if ($updStatus) {
     $updStatus->bind_param("i", $userId);
     $updStatus->execute();

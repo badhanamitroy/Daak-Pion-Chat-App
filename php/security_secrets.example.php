@@ -8,3 +8,9 @@ if (!defined('PASSWORD_PEPPER')) {
     // Must be at least 32 characters (prefer 64-char hex string)
     define('PASSWORD_PEPPER', 'REPLACE_WITH_CRYPTOGRAPHICALLY_RANDOM_64_CHAR_HEX_PEPPER');
 }
+
+if (!defined('MESSAGE_ENCRYPTION_KEY')) {
+    // Must be at least 32 bytes (prefer 64-char hex string from bin2hex(random_bytes(32)))
+    define('MESSAGE_ENCRYPTION_KEY', 'REPLACE_WITH_CRYPTOGRAPHICALLY_RANDOM_64_CHAR_HEX_KEY');
+}
+

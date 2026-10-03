@@ -6,6 +6,7 @@ require_once __DIR__ . "/bootstrap_security.php";
 
 use Daakpion\Security\SessionManager;
 use Daakpion\Security\CsrfProtection;
+use Daakpion\Security\CryptoService;
 
 if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
@@ -72,12 +73,15 @@ if ($friendCheck->num_rows === 0) {
 }
 $friendCheck->close();
 
-// ── 3. Encryption & Storage ──────────────────────────────────────────────────
-// SECRET_KEY is loaded from app_config.php
-$iv             = random_bytes(16);
-$iv_b64         = base64_encode($iv);
-$encrypted      = openssl_encrypt($message, 'AES-256-CBC', SECRET_KEY, 0, $iv);
-$stored_message = $iv_b64 . ':' . $encrypted;
+// ── 3. Authenticated Encryption & Storage (Resolves DP-VULN-03) ───────────────
+// Uses AES-256-GCM with unique 12-byte random nonce and 128-bit authentication tag.
+try {
+    $stored_message = CryptoService::encryptMessage($message);
+} catch (\Throwable $e) {
+    error_log("Message encryption failure: " . $e->getMessage());
+    http_response_code(500);
+    exit("A system error occurred. Please try again later.");
+}
 
 $sql  = "INSERT INTO messages (sender_id, receiver_id, message, sent_at, is_read) VALUES (?, ?, ?, NOW(), 0)";
 $stmt = $conn->prepare($sql);

@@ -1,6 +1,8 @@
 <?php
 // tests/SecurityTestSuite.php — Automated Security & Authentication Test Suite
-declare(strict_types=1);
+putenv('APP_ENV=test');
+$_ENV['APP_ENV'] = 'test';
+$_SERVER['APP_ENV'] = 'test';
 
 require_once __DIR__ . '/../php/bootstrap_security.php';
 
@@ -259,7 +261,10 @@ class SecurityTestSuite
         $testUserId = $this->db->insert_id;
         $stmt->close();
 
-        $resetService = new PasswordResetService($this->db);
+        $clientIp = RateLimiter::getClientIp();
+        $rateLimiter = new RateLimiter($this->db);
+        $rateLimiter->clear(RateLimiter::buildKey('reset_ip', $clientIp));
+        $resetService = new PasswordResetService($this->db, null, $rateLimiter);
 
         // 1. Anti-enumeration: Nonexistent email receives identical message
         $nonExistent = "does_not_exist_" . time() . "@example.com";

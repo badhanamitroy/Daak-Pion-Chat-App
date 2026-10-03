@@ -6,6 +6,10 @@ Options -Indexes
 
 # ─── HTTP Security Headers ──────────────────────────────────────────────────
 <IfModule mod_headers.c>
+    # Suppress verbose server and PHP signatures (Resolves DP-P3-005)
+    Header unset X-Powered-By
+    Header always unset X-Powered-By
+
     # Prevent browsers from MIME-sniffing away from declared content-type
     Header always set X-Content-Type-Options "nosniff"
 
@@ -20,6 +24,9 @@ Options -Indexes
 
     # Restrict browser features not needed by this app
     Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+
+    # Content Security Policy (CSP) — Enforced Defense-in-Depth (Resolves DP-VULN-08, DP-P3-007)
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';"
 </IfModule>
 
 # ─── Ensure proper MIME types for CSS and JS ────────────────────────────────
@@ -41,8 +48,8 @@ Options -Indexes
     </IfModule>
 </FilesMatch>
 
-# ─── Deny direct access to secrets, configuration, migrations and logs ─────────
-<FilesMatch "^(security_secrets.*\.php|\.env.*|\.git.*|.*\.log|migrate_security\.php)$">
+# ─── Deny direct access to secrets, configuration, migrations and logs (Resolves DP-P3-005) ─────────
+<FilesMatch "^(config\.php|db_connect\.php|app_config\.php|security_secrets.*\.php|\.env.*|\.git.*|.*\.log|migrate_security\.php)$">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>

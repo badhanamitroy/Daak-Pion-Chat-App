@@ -40,7 +40,7 @@ if (isset($_POST['resend_otp'])) {
         } else {
             $rawOtp = $twoFactor->issueOtp($userId, $email);
             $message = "A new verification code has been sent.";
-            if ($_SERVER['SERVER_NAME'] === 'localhost' || $_SERVER['REMOTE_ADDR'] === '127.0.0.1' || $_SERVER['REMOTE_ADDR'] === '::1') {
+            if (\Daakpion\Security\Environment::allowDevSecrets()) {
                 $devOtp = $rawOtp;
             }
         }
@@ -59,8 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_otp'])) {
             // Clear pre-auth session state
             unset($_SESSION['2fa_preauth_user_id'], $_SESSION['2fa_preauth_email'], $_SESSION['2fa_preauth_user']);
 
-            // Update user status
-            $upd = $conn->prepare("UPDATE users SET status = 'Active now' WHERE id = ?");
+            // Update user status and activity timestamp (Resolves DP-P4-009)
+            $upd = $conn->prepare("UPDATE users SET status = 'Active now', last_activity_at = NOW() WHERE id = ?");
             $upd->bind_param("i", $userId);
             $upd->execute();
             $upd->close();
@@ -234,7 +234,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_otp'])) {
     </div>
   <?php endif; ?>
 
-  <?php if ($devOtp): ?>
+  <?php if ($devOtp && \Daakpion\Security\Environment::allowDevSecrets()): ?>
     <div class="dev-box">
       <strong><i class="fa-solid fa-code"></i> Local Dev Simulated OTP:</strong> <code><?php echo htmlspecialchars($devOtp); ?></code>
     </div>

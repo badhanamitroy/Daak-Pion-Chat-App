@@ -113,11 +113,12 @@ $cntStmt->close();
               <i class="fa-solid fa-message"></i> Messages
             </button>
           </a>
-          <a href="logout.php">
-            <button class="btn danger">
+          <form method="post" action="logout.php" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(\Daakpion\Security\CsrfProtection::getToken()); ?>" />
+            <button class="btn danger" type="submit">
               <i class="fa-solid fa-right-from-bracket"></i> Log Out
             </button>
-          </a>
+          </form>
         </div>
       </div>
 

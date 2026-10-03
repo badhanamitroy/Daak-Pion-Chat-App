@@ -28,6 +28,14 @@ if (file_exists(__DIR__ . '/security_secrets.php')) {
 // ─── Password Policy ────────────────────────────────────────────────────────
 define('MIN_PASSWORD_LENGTH', 12);
 
+// ─── Application Environment (Resolves DP-VULN-07) ───────────────────────────
+// Valid: 'development', 'test', 'production'.
+// In production, OTPs and reset tokens are strictly hidden from HTTP responses.
+if (!defined('APP_ENV')) {
+    $env = getenv('APP_ENV') ?: 'production';
+    define('APP_ENV', $env);
+}
+
 // ─── Session Security ───────────────────────────────────────────────────────
 define('SESSION_LIFETIME_SECONDS', 1800); // 30 minutes idle timeout
 

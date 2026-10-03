@@ -33,6 +33,10 @@ if (!in_array('temp_password_expires_at', $userCols)) {
 if (!in_array('two_factor_enabled', $userCols)) {
     $queries[] = "ALTER TABLE users ADD COLUMN two_factor_enabled TINYINT(1) NOT NULL DEFAULT 0";
 }
+if (!in_array('last_activity_at', $userCols)) {
+    $queries[] = "ALTER TABLE users ADD COLUMN last_activity_at DATETIME NULL, ADD INDEX idx_last_activity (last_activity_at)";
+}
+
 
 foreach ($queries as $q) {
     if ($conn->query($q)) {

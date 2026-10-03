@@ -43,6 +43,7 @@ UNION
    FROM friends f
    JOIN users u ON u.id = f.user1_id
   WHERE f.user2_id = ? AND f.status = 'active')
+LIMIT 100
 ";
 $stmt = must_prepare($conn, $fq, "Friends");
 $stmt->bind_param("ii", $user_id, $user_id);
@@ -67,6 +68,7 @@ SELECT fr.id,
  WHERE fr.receiver_id = ?
    AND fr.status = 'pending'
 ORDER BY fr.sent_at DESC
+LIMIT 100
 ";
 $stmt = must_prepare($conn, $pq, "Pending requests");
 $stmt->bind_param("i", $user_id);
@@ -78,7 +80,7 @@ while ($row = $res->fetch_assoc()) {
 $stmt->close();
 
 $allUsers = [];
-$uq = "SELECT id, Fname AS fname, lname AS iname, Dp AS dp FROM users WHERE id != ?";
+$uq = "SELECT id, Fname AS fname, lname AS iname, Dp AS dp FROM users WHERE id != ? ORDER BY id ASC LIMIT 100";
 $stmt = must_prepare($conn, $uq, "All users");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();

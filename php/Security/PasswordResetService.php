@@ -112,9 +112,10 @@ class PasswordResetService
             'expires_in' => self::TOKEN_EXPIRY_SECONDS
         ]);
 
-        // In a live production environment with SMTP configured, send reset email here.
-        // For local development/testing verification, we return dev_token.
-        $genericResponse['dev_token'] = $rawToken;
+        // For development/testing verification, return dev_token only if permitted by Environment
+        if (Environment::allowDevSecrets()) {
+            $genericResponse['dev_token'] = $rawToken;
+        }
         return $genericResponse;
     }
 

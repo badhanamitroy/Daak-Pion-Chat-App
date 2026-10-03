@@ -59,16 +59,22 @@ if (!$policy['valid']) {
     exit(json_encode(['error' => implode(' ', $policy['errors'])]));
 }
 
-// ── 4. Check for Existing Email ──────────────────────────────────────────────
+// ── 4. Check for Existing Email (Resolves DP-P3-008: Account Enumeration Defense) ─
 $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
 $check->bind_param("s", $email);
 $check->execute();
 $check->store_result();
-if ($check->num_rows > 0) {
-    $check->close();
-    exit(json_encode(['error' => 'This email address is already registered.']));
-}
+$alreadyExists = ($check->num_rows > 0);
 $check->close();
+
+if ($alreadyExists) {
+    // Perform password hashing work to mitigate timing-based account enumeration oracle
+    CryptoService::hashPassword($password);
+    $logger->log('REGISTRATION_ATTEMPT_EXISTING', 'FAILED', null, $email);
+    exit(json_encode([
+        'error' => 'Unable to complete registration with the provided details. If you already have an account, please log in or reset your password.'
+    ]));
+}
 
 // ── 5. Hash Password with HMAC-SHA256 Pepper and Argon2id ────────────────────
 $hashedPassword = CryptoService::hashPassword($password);

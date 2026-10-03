@@ -1,23 +1,23 @@
 # DaakPion — Complete Security Audit & Remediation Report
-**Project:** DaakPion Real-Time PHP Chat Application  
-**Corpus / Repository:** `badhanamitroy/Daak-Pion-Chat-App` (`c:\xampp\htdocs\Daakpion`)  
-**Active Branch:** `security-remediation-phase1`  
-**Assessment Date:** October 2026  
-**Auditor / Security Engineer:** DeepMind Advanced Agentic Security Team  
+**Project:** DaakPion Real-Time PHP Chat Application
+**Corpus / Repository:** `badhanamitroy/Daak-Pion-Chat-App` (`c:\xampp\htdocs\Daakpion`)
+**Active Branch:** `security-remediation-phase1`
+**Assessment Date:** October 2026
+**Auditor / Security Engineer:** DeepMind Advanced Agentic Security Team
 
 ---
-
 ## Executive Summary
 
-During an ethical application security review of the DaakPion real-time web chat application, eight key vulnerability classes and architectural risks were identified (designated `DP-VULN-01` through `DP-VULN-08`). In accordance with the security remediation plan, **Phase 1 Security Remediation** has been executed directly on a dedicated Git branch (`security-remediation-phase1`).
+During an ethical application security review of the DaakPion real-time web chat application, eight key vulnerability classes and architectural risks were identified (designated `DP-VULN-01` through `DP-VULN-08`).
 
-Phase 1 addressed the most immediate and critical vulnerabilities in authorization, cross-site request forgery (CSRF), technical information disclosure, and administrative endpoint protection:
-1. **Active Friendship Authorization Enforcement (`DP-VULN-01`):** Eliminated arbitrary direct messaging by validating active mutual friendship in `php/send_message.php`.
-2. **CSRF Token Generation, Delivery, and Timing-Safe Validation (`DP-VULN-02`):** Implemented dual-channel CSRF protection (HTTP headers and POST bodies) for all state-changing social endpoints (`send_message.php`, `send_request.php`, `respond_request.php`) and updated the frontend JavaScript clients in `chatboard.php` and `friendlist.php`.
-3. **Database Diagnostic and Internal Error Disclosure Elimination (`DP-VULN-04`):** Replaced raw `mysqli::$error` and exception message dumps with generic client-facing HTTP 500 error messages, logging technical specifics to the server's `error_log()`.
-4. **CLI Restriction and Directory Access Hardening (`DP-VULN-05`):** Locked `php/migrate_security.php` to CLI execution only (`php_sapi_name() === 'cli'`) and blocked all HTTP access to the `/tests/` directory via Apache access control rules.
+* **Phase 1 Security Remediation** was completed on the `security-remediation-phase1` branch, addressing `DP-VULN-01` (Active-friendship authorization), `DP-VULN-02` (CSRF protection), `DP-VULN-04` (Internal error disclosure), and `DP-VULN-05` (CLI restriction and test directory web shielding).
+* **Phase 2 Security Remediation** has now been completed on the dedicated branch `security-remediation-phase2`, addressing all remaining findings:
+  1. **Authenticated Chat Encryption (`DP-VULN-03`):** Upgraded message encryption to `AES-256-GCM` with 12-byte random IVs and 16-byte authentication tags (`v2:gcm:<iv>:<tag>:<ciphertext>`), while preserving backward-compatible transparent decryption for legacy CBC messages and failing closed on tampering.
+  2. **Query Resource Bounding & Cursor Pagination (`DP-VULN-06`):** Enforced server-side bounded pagination on `php/get_messages.php` with `since_id` (forward polling) and `before_id` (history backfill) cursors, clamped page size limits (default 50, maximum 100), and added `LIMIT 100` bounds to user and friend queries.
+  3. **Explicit Environment Model (`DP-VULN-07`):** Replaced loose `localhost` hostname detection with an explicit `APP_ENV` architecture (`development`, `test`, `production`) in `php/Security/Environment.php`. Defaults to `production` (fail-closed), strictly suppressing OTPs, reset tokens, and dev secrets from API responses and pages.
+  4. **Content Security Policy (`DP-VULN-08`):** Deployed enforced Content Security Policy in `.htaccess` and `bootstrap_security.php`, restricting `object-src 'none'`, `frame-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'self'`, and explicitly omitting `unsafe-eval`.
 
-All 46 automated Phase 1 regression tests, 46 core security tests, and end-to-end integration workflows passed with 0 failures on synthetic test data without touching or modifying any production records.
+All 64 Phase 2 automated security tests, 46 Phase 1 regression tests, 46 core security tests, and end-to-end integration workflows passed with 0 failures on synthetic test data.
 
 ---
 
@@ -34,16 +34,16 @@ All 46 automated Phase 1 regression tests, 46 core security tests, and end-to-en
 * **Key Tables:** `users`, `friends`, `friendrequests`, `messages`
 
 ### 2. Components and Endpoints Audited
-* **Authentication & Session:** `php/userlogin.php`, `php/registration.php`, `php/logout.php`, `php/verify_2fa.php`, `php/forgot_password.php`, `php/reset_password.php`, `php/force_change_password.php`, `php/Security/SessionManager.php`.
+* **Authentication & Session:** `php/userlogin.php`, `php/registration.php`, `php/logout.php`, `php/verify_2fa.php`, `php/forgot_password.php`, `php/reset_password.php`, `php/force_change_password.php`, `php/Security/SessionManager.php`, `php/Security/Environment.php`.
 * **Social & Messaging:** `php/chatboard.php`, `php/send_message.php`, `php/get_messages.php`, `php/friendlist.php`, `php/send_request.php`, `php/respond_request.php`, `php/user-profile.php`, `php/edit-profile.php`.
 * **Core Security Infrastructure:** `php/bootstrap_security.php`, `php/app_config.php`, `php/Security/CryptoService.php`, `php/Security/CsrfProtection.php`, `php/Security/PasswordPolicy.php`, `php/Security/RateLimiter.php`, `php/Security/AuditLogger.php`.
 * **Configuration & Migrations:** `.htaccess`, `tests/.htaccess`, `php/migrate_security.php`, `php/db_connect.php`.
 
 ### 3. Audit Methodology
 1. **Static Source Code Review:** Manual AST and data-flow tracing from HTTP inputs (`$_POST`, `$_GET`, `$_SESSION`, `$_SERVER`) through business logic down to SQL queries and output renders.
-2. **Automated Dynamic Regression Testing:** Execution of isolated CLI-based PHP test suites (`tests/SecurityTestSuite.php`, `tests/IntegrationFlowTest.php`, and `tests/Phase1RemediationTest.php`) using synthetically generated user accounts.
+2. **Automated Dynamic Regression Testing:** Execution of isolated CLI-based PHP test suites (`tests/SecurityTestSuite.php`, `tests/IntegrationFlowTest.php`, `tests/Phase1RemediationTest.php`, and `tests/Phase2RemediationTest.php`) using synthetically generated user accounts.
 3. **HTTP Web Server Verification:** Probing Apache endpoints via loopback HTTP requests (`curl.exe`) to verify `.htaccess` directives, HTTP status codes, and server headers.
-4. **Cryptographic Validation:** Verification of Argon2id password hashing parameters, HMAC password pepper integrity, timing-attack resistance (`hash_equals`), and initialization vector (IV) uniqueness in OpenSSL AES routines.
+4. **Cryptographic Validation:** Verification of Argon2id password hashing parameters, HMAC password pepper integrity, timing-attack resistance (`hash_equals`), AEAD message integrity tags in AES-256-GCM, and initialization vector (IV) uniqueness in OpenSSL AES routines.
 
 ### 4. Scope Limitations & Excluded Components
 * **External Mail Transport:** Production SMTP delivery for OTPs and reset tokens could not be tested against external mail relays because local development credentials were used.
@@ -54,7 +54,7 @@ All 46 automated Phase 1 regression tests, 46 core security tests, and end-to-en
 
 ## Section B — Existing Security Architecture
 
-Prior to the Phase 1 remediation, the DaakPion application underwent a security foundation upgrade that introduced modern authentication controls. The status of each architectural component was evaluated:
+Prior to the Phase 1 and Phase 2 remediations, the DaakPion application underwent security upgrades. The status of each architectural component was evaluated:
 
 | Security Mechanism | Implementation Status | Technical Details |
 | :--- | :--- | :--- |
@@ -66,13 +66,15 @@ Prior to the Phase 1 remediation, the DaakPion application underwent a security 
 | **Brute-Force Rate Limiting** | Fully Implemented | `RateLimiter` restricts login attempts by IP and username (exponential backoff after 5 failures). |
 | **Two-Factor Authentication (2FA)** | Fully Implemented | Time-limited 6-digit numeric OTP stored as HMAC-SHA256 digest in database, preventing plaintext exposure in case of DB leak. |
 | **Password Reset Anti-Enumeration**| Fully Implemented | Identical success responses for both existing and nonexistent email addresses. Cryptographic tokens hashed with SHA-256 before storage. |
-| **SQL Injection Prevention** | Mostly Implemented | Prepared statements (`mysqli::prepare`) used across endpoints, but error handling leaked raw query failures. |
-| **Active Friendship Authorization** | **Vulnerable (Fixed in Phase 1)** | `send_message.php` accepted any integer `receiver_id` without verifying friendship status. |
-| **CSRF Protection** | **Inconsistent (Fixed in Phase 1)** | `CsrfProtection` class existed but was omitted in `send_message.php`, `send_request.php`, and `respond_request.php`. |
-| **Information Disclosure** | **Vulnerable (Fixed in Phase 1)** | `die($conn->error)` and `echo $e->getMessage()` dumped raw MySQL syntax and paths to clients. |
-| **Migration & Test Exposure** | **Vulnerable (Fixed in Phase 1)** | `php/migrate_security.php` and `/tests/` were accessible over HTTP without restriction. |
-| **Message Encryption** | Weakness Identified (Phase 2) | AES-256-CBC without HMAC or GCM authentication tag. Legacy messages require gradual migration. |
-| **Query Pagination** | Unbounded (Phase 2) | `get_messages.php` and user search retrieve unpaginated result sets, posing DoS risk. |
+| **SQL Injection Prevention** | Fully Implemented | Prepared statements (`mysqli::prepare`) used across all endpoints; client error leaks completely eliminated. |
+| **Active Friendship Authorization** | **Fixed and tested (Phase 1)** | `send_message.php` verifies active mutual friendship in `friends` table before allowing message creation (`DP-VULN-01`). |
+| **CSRF Protection** | **Fixed and tested (Phase 1)** | `CsrfProtection` validated across `send_message.php`, `send_request.php`, and `respond_request.php` with meta tag delivery (`DP-VULN-02`). |
+| **Information Disclosure** | **Fixed and tested (Phase 1)** | Database diagnostics suppressed; generic errors returned to client and detailed logs written to server `error_log()` (`DP-VULN-04`). |
+| **Migration & Test Exposure** | **Fixed and tested (Phase 1)** | `php/migrate_security.php` locked to CLI; Apache `.htaccess` denies HTTP access to `/tests/` (`DP-VULN-05`). |
+| **Message Encryption** | **Fixed and tested (Phase 2)** | `AES-256-GCM` authenticated encryption with 12-byte nonce, 16-byte tag, versioned format `v2:gcm:<iv>:<tag>:<cipher>`. Backward-compatible fallback for legacy CBC; fail-closed on tampering (`DP-VULN-03`). |
+| **Query Pagination** | **Fixed and tested (Phase 2)** | Cursor-based (`since_id`, `before_id`) bounded pagination in `get_messages.php` (default 50, max 100); bounded limit on user/friend lists (`DP-VULN-06`). |
+| **Environment & Secret Protection** | **Fixed and tested (Phase 2)** | Strict `APP_ENV` architecture in `Environment.php`; defaults to `production` (fail-closed); OTPs and reset tokens completely suppressed from responses in production (`DP-VULN-07`). |
+| **Content Security Policy** | **Fixed and tested (Phase 2)** | Enforced CSP deployed in `.htaccess` and `bootstrap_security.php`; blocks plugins (`object-src 'none'`), framing (`frame-src 'none'`, `frame-ancestors 'self'`), base URI hijacking (`base-uri 'self'`), and omits `unsafe-eval` (`DP-VULN-08`). |
 
 ---
 
@@ -116,7 +118,7 @@ Prior to the Phase 1 remediation, the DaakPion application underwent a security 
 
 ### Audit Item 4: Web Exposure of Migrations and Automated Tests
 1. **Check:** Can database migration scripts (`php/migrate_security.php`) or automated test scripts (`tests/*`) be executed by unauthenticated remote users over HTTP?
-2. **Location:** `php/migrate_security.php`, `tests/`.
+2. **Location:** `php/migrate_security.php`, `tests/` directory.
 3. **Method:** HTTP GET requests using `curl.exe` against `http://127.0.0.1/Daakpion/`.
 4. **Observation:** `php/migrate_security.php` lacked SAPI checks and could be triggered by any web visitor. The `tests/` directory was directly browseable and executable via Apache.
 5. **Finding:** **VULNERABLE (`DP-VULN-05`)**. Remote users could trigger schema migrations or execute test suites that create synthetic accounts or cause race conditions.
@@ -138,12 +140,6 @@ Prior to the Phase 1 remediation, the DaakPion application underwent a security 
 #### A. Original State
 * **File:** `php/send_message.php`
 * **Weakness:** The script validated only that the sender was authenticated (`$_SESSION['user_id']`) and that `$receiver_id` was non-zero. It did not check the `friends` table to verify if the recipient was an active friend.
-```php
-// Original vulnerable snippet
-$receiver_id = (int)$_POST['receiver_id'];
-$message     = trim($_POST['message']);
-// ... direct insert into messages table ...
-```
 
 #### B. Risk and Attack Scenario
 * **Attacker Preconditions:** Authenticated account on the application.
@@ -215,31 +211,43 @@ $message     = trim($_POST['message']);
 
 ### Finding DP-VULN-03: AES-CBC Message Encryption Without Authenticated Integrity (AEAD)
 * **Severity:** Medium (CVSS: 5.9)
-* **Status:** **Not implemented (Deferred to Phase 2)**
+* **Status:** **Fixed and tested**
 * **Remediation Phase:** Phase 2
 
 #### A. Original State
-* **File:** `php/send_message.php:L77-L80`, `php/get_messages.php:L54-L62`.
-* **Weakness:** Messages are encrypted using `AES-256-CBC` with random IV, but lack an HMAC authentication tag or Galois/Counter Mode (GCM) integrity tag. Format: `base64(iv) . ':' . ciphertext`.
+* **Files:** `php/send_message.php`, `php/get_messages.php`, `php/Security/CryptoService.php`.
+* **Weakness:** Messages were encrypted using `AES-256-CBC` with random IV, but lacked an HMAC authentication tag or Galois/Counter Mode (GCM) integrity tag. Format: `base64(iv) . ':' . ciphertext`. Legacy records also used a static IV format (`<ciphertext>`).
 
 #### B. Risk and Attack Scenario
 * **Attacker Preconditions:** Direct database access or message tampering capability.
-* **Attack Scenario:** Without cryptographic integrity protection (AEAD or Encrypt-then-MAC), an attacker with database write access can perform bit-flipping attacks on the ciphertext that predictably alter decrypted plaintext without causing decryption errors.
+* **Attack Scenario:** Without cryptographic integrity protection (AEAD or Encrypt-then-MAC), an attacker with database access can perform bit-flipping attacks on the ciphertext that predictably alter decrypted plaintext without causing decryption errors.
 * **Impact:** Tampering with stored conversation records without detection.
 
-#### C. Required Code Changes (Planned for Phase 2)
-* Transition to `AES-256-GCM` with a 12-byte IV and 16-byte authentication tag.
-* Adopt versioned ciphertext format: `v2:<iv_b64>:<tag_b64>:<ciphertext>`.
-* Provide backward-compatible decryption fallback for legacy `AES-256-CBC` messages.
+#### C. Required Code Changes
+* Transition message encryption to `AES-256-GCM` with a 12-byte cryptographically secure random nonce (`random_bytes(12)`) and a 16-byte authentication tag.
+* Adopt an explicit versioned ciphertext format: `v2:gcm:<base64(iv)>:<base64(tag)>:<base64(ciphertext)>`.
+* Implement centralized, fail-closed message decryption in `CryptoService::decryptMessage()`.
+* Provide backward-compatible decryption fallback for legacy random-IV CBC (`<iv_b64>:<cipher>`) and static-IV CBC (`<cipher>`).
+* Replace inline encryption/decryption in `send_message.php` and `get_messages.php` with centralized `CryptoService` calls.
+* In `get_messages.php`, if decryption fails due to ciphertext or tag tampering, fail closed and render `[message unavailable]` instead of corrupted data or leaking exceptions.
 
 #### D. Actual Implementation
-* **Deferred to Phase 2.** Modifying encryption in Phase 1 without a scheduled maintenance window and database migration script would risk data loss or rendering existing chat history unreadable.
+* Added `CryptoService::getMessageKey()`, `CryptoService::encryptMessage()`, and `CryptoService::decryptMessage()` in [`php/Security/CryptoService.php`](file:///c:/xampp/htdocs/Daakpion/php/Security/CryptoService.php).
+* Updated [`php/send_message.php`](file:///c:/xampp/htdocs/Daakpion/php/send_message.php) to encrypt outgoing messages using `CryptoService::encryptMessage($message)`.
+* Updated [`php/get_messages.php`](file:///c:/xampp/htdocs/Daakpion/php/get_messages.php) to decrypt incoming messages using `CryptoService::decryptMessage($stored)` and display `[message unavailable]` if authentication fails.
 
 #### E. Test and Verification
-* **Status:** **Not tested** (implementation pending Phase 2).
+* **Test Suite:** `tests/Phase2RemediationTest.php` (Section 1: Tests 1.1–1.21)
+* New encryptions strictly produce format starting with `v2:gcm:`. **[PASS]**
+* New GCM messages decrypt correctly to original plaintext. **[PASS]**
+* Distinct nonces generated on consecutive calls (no nonce reuse). **[PASS]**
+* Decoded nonce length verified at 12 bytes; tag length verified at 16 bytes. **[PASS]**
+* Legacy AES-256-CBC (random IV) and static-IV legacy messages decrypt successfully. **[PASS]**
+* Tampered ciphertext, tampered tag, tampered IV, and wrong key all fail closed and return `null`. **[PASS]**
+* Tampered messages in `get_messages.php` render `[message unavailable]`. **[PASS]**
 
 #### F. Remaining Risk
-* Stored messages remain in legacy CBC format. Database read/write access must be strictly restricted to the application database user.
+* Stored legacy CBC messages remain in the database until naturally aged or migrated. Because bulk in-place rewrite of user histories carries catastrophic data-loss risk, read-time backward compatibility is safely maintained. Plaintext keys and messages are never logged.
 
 ---
 
@@ -318,80 +326,131 @@ echo "Error: " . $e->getMessage();
 
 ### Finding DP-VULN-06: Unbounded User and Message Queries
 * **Severity:** Low-Medium (CVSS: 5.3)
-* **Status:** **Not implemented (Deferred to Phase 2)**
+* **Status:** **Fixed and tested**
 * **Remediation Phase:** Phase 2
 
 #### A. Original State
-* **Files:** `php/get_messages.php`, `php/userlogin.php`, `php/friendlist.php`.
-* **Weakness:** Queries retrieve all messages between two users or all search matches without `LIMIT` or cursor pagination.
+* **Files:** `php/get_messages.php`, `php/friendlist.php`, `php/chatboard.php`.
+* **Weakness:** Queries retrieved all messages between two users or all registered users without `LIMIT` or cursor-based pagination. An attacker or conversation with tens of thousands of messages could trigger database table scans and memory exhaustion.
 
 #### B. Risk and Attack Scenario
-* In large conversations (thousands of messages), fetching the chat history loads excessive data into memory, slowing the database and causing browser memory spikes.
+* **Attacker Preconditions:** Authenticated user with large chat histories or querying large user lists.
+* **Attack Scenario:** In conversations with thousands of messages, fetching the chat history loads excessive unpaginated records into memory, slowing database I/O, exhausting PHP memory limits, and causing browser freezes.
+* **Impact:** Resource exhaustion, denial-of-service, latency spikes.
 
-#### C. Required Code Changes (Planned for Phase 2)
-* Implement cursor-based pagination (e.g. `WHERE id < ? ORDER BY id DESC LIMIT 50`).
-* Add frontend infinite-scroll loading.
+#### C. Required Code Changes
+* Implement server-enforced bounded pagination in `php/get_messages.php`:
+  * Default page size: 50 messages.
+  * Maximum allowed page size: 100 messages (oversized requests clamped to 100).
+  * Cursor-based pagination:
+    * `since_id > 0`: Forward polling cursor (`AND id > ? ORDER BY id ASC LIMIT ?`).
+    * `before_id > 0`: Historical backfill cursor (`AND id < ? ORDER BY id DESC LIMIT ?`, array reversed for chronological display).
+    * Initial view (`since_id == 0`, `before_id == 0`): Fetches the latest 50 messages (`ORDER BY id DESC LIMIT ?`, array reversed so earliest are top).
+  * Enforce strict integer casting on `limit`, `since_id`, and `before_id`.
+* Enforce maximum row limits (`LIMIT 100`) on `friendlist.php` all-users query and `chatboard.php` friends list query.
 
 #### D. Actual Implementation
-* **Deferred to Phase 2** to avoid breaking frontend chat scroll position and message synchronization without dedicated UI updates.
+* Modified [`php/get_messages.php`](file:///c:/xampp/htdocs/Daakpion/php/get_messages.php) with cursor evaluation (`$since_id`, `$before_id`, `$limit`), prepared SQL queries, and chronological sorting.
+* Added `LIMIT 100` to user listing in [`php/friendlist.php`](file:///c:/xampp/htdocs/Daakpion/php/friendlist.php#L39).
+* Added `LIMIT 100` to active friends query in [`php/chatboard.php`](file:///c:/xampp/htdocs/Daakpion/php/chatboard.php#L63).
 
 #### E. Test and Verification
-* **Status:** **Not tested**.
+* **Test Suite:** `tests/Phase2RemediationTest.php` (Section 2: Tests 2.1–2.22)
+* Default request returns bounded array (<= 50 messages). **[PASS]**
+* Explicit `limit=5` returns exactly 5 messages. **[PASS]**
+* Oversized request `limit=5000` is safely clamped to maximum page size. **[PASS]**
+* Negative limit and non-numeric strings are safely sanitized without SQL error. **[PASS]**
+* `since_id` cursor returns strictly newer messages (`id > since_id`). **[PASS]**
+* `before_id` cursor returns strictly older messages (`id < before_id`). **[PASS]**
+* Static assertion confirms `friendlist.php` and `chatboard.php` enforce `LIMIT 100`. **[PASS]**
 
 #### F. Remaining Risk
-* Accounts with very large chat histories may experience latency during initial chat open.
+* Conversations exceeding 100 messages require client-side pagination / history scrolling (`before_id`) to view older archives.
 
 ---
 
 ### Finding DP-VULN-07: Development OTP/Reset-Token Disclosure Based on Loose Host Detection
 * **Severity:** Medium (CVSS: 6.1)
-* **Status:** **Not implemented (Deferred to Phase 2)**
+* **Status:** **Fixed and tested**
 * **Remediation Phase:** Phase 2
 
 #### A. Original State
-* **Files:** `php/verify_2fa.php`, `php/forgot_password.php`.
-* **Weakness:** Checks such as `$_SERVER['SERVER_NAME'] === 'localhost'` can display the generated OTP or reset link directly in JSON responses for development convenience.
+* **Files:** `php/verify_2fa.php`, `php/forgot_password.php`, `php/userlogin.php`, `php/Security/PasswordResetService.php`.
+* **Weakness:** Checks relied on `$_SERVER['SERVER_NAME'] === 'localhost'` to determine whether to include plaintext OTPs and password reset tokens in API responses. In reverse proxy environments where `Host: localhost` is forwarded or spoofed, production environments could expose sensitive authentication material.
 
 #### B. Risk and Attack Scenario
-* If deployed behind a reverse proxy that forwards `Host: localhost` or in staging environments with public access, OTPs and reset tokens could be exposed to unauthorized parties.
+* **Attacker Preconditions:** Application deployed behind a proxy that sets or preserves `Host: localhost`, or DNS pointing to loopback.
+* **Attack Scenario:** Requesting password reset or logging in exposes the OTP or reset token in JSON responses, allowing an attacker to hijack accounts or bypass 2FA without access to the victim's email.
+* **Impact:** Authentication bypass, account takeover.
 
-#### C. Required Code Changes (Planned for Phase 2)
-* Require an explicit environment variable (`APP_ENV=development` and `ALLOW_DEV_TOKEN_OUTPUT=true`) in `security_secrets.php` rather than relying on HTTP host headers.
+#### C. Required Code Changes
+* Implement an explicit environment manager: `Daakpion\Security\Environment`.
+* Support canonical environments: `development`, `test`, `production`.
+* Prioritize environment variables (`getenv('APP_ENV')`, `$_ENV['APP_ENV']`) followed by application constants, defaulting to `production` (fail-closed) if unset or unrecognized.
+* Centralize debug token visibility through `Environment::allowDevSecrets()`, which returns `true` ONLY in `development` and `test` environments.
+* In `production`, strictly suppress `dev_otp`, `dev_token`, and development markup from all endpoints and responses.
 
 #### D. Actual Implementation
-* **Deferred to Phase 2.**
+* Created [`php/Security/Environment.php`](file:///c:/xampp/htdocs/Daakpion/php/Security/Environment.php) with methods `getEnvironment()`, `isProduction()`, `isDevelopment()`, `isTest()`, and `allowDevSecrets()`.
+* Defined default fallback `APP_ENV` in [`php/app_config.php`](file:///c:/xampp/htdocs/Daakpion/php/app_config.php).
+* Updated [`php/userlogin.php`](file:///c:/xampp/htdocs/Daakpion/php/userlogin.php), [`php/verify_2fa.php`](file:///c:/xampp/htdocs/Daakpion/php/verify_2fa.php), [`php/forgot_password.php`](file:///c:/xampp/htdocs/Daakpion/php/forgot_password.php), and [`php/Security/PasswordResetService.php`](file:///c:/xampp/htdocs/Daakpion/php/Security/PasswordResetService.php) to use `Environment::allowDevSecrets()`.
 
 #### E. Test and Verification
-* **Status:** **Not tested**.
+* **Test Suite:** `tests/Phase2RemediationTest.php` (Section 3: Tests 3.1–3.12)
+* `Environment::getEnvironment()` verified across `production`, `development`, `test`. **[PASS]**
+* Missing or invalid `APP_ENV` strictly defaults to `production` and forbids dev secrets (fail-closed). **[PASS]**
+* Under `APP_ENV=production`, `verify_2fa.php` suppresses dev-box and dev OTP. **[PASS]**
+* Under `APP_ENV=development`, dev OTP is accessible for developer convenience. **[PASS]**
+* Under `APP_ENV=production`, `forgot_password.php` suppresses `dev_token`. **[PASS]**
 
 #### F. Remaining Risk
-* Staging environments must ensure `APP_ENV` is set to `production`.
+* Server administrators must ensure production deployments set `APP_ENV=production` or omit `APP_ENV` (which safely defaults to production).
 
 ---
 
 ### Finding DP-VULN-08: Missing Content Security Policy (CSP) Hardening
 * **Severity:** Low-Medium (CVSS: 4.7)
-* **Status:** **Not implemented (Deferred to Phase 2)**
+* **Status:** **Fixed and tested**
 * **Remediation Phase:** Phase 2
 
 #### A. Original State
-* **File:** `.htaccess`
-* **Weakness:** While `X-Frame-Options`, `X-Content-Type-Options`, and `Referrer-Policy` headers are configured, a strict `Content-Security-Policy` header is absent.
+* **Files:** `.htaccess`, `php/bootstrap_security.php`.
+* **Weakness:** While `X-Frame-Options`, `X-Content-Type-Options`, and `Referrer-Policy` headers were configured, an enforced `Content-Security-Policy` header was absent.
 
 #### B. Risk and Attack Scenario
-* If an XSS vulnerability were introduced in a future release, the absence of CSP would allow arbitrary script execution, exfiltration of DOM content, and external data transmission.
+* **Attacker Preconditions:** Hypothetical injection of unsanitized HTML/JS into chatboard, profiles, or third-party dependencies.
+* **Attack Scenario:** Without CSP, an injected script could execute arbitrary code, read DOM elements, instantiate unauthorized plugins/objects, or exfiltrate session data to external attacker endpoints.
+* **Impact:** Cross-site scripting (XSS), data exfiltration, clickjacking via nested frames.
 
-#### C. Required Code Changes (Planned for Phase 2)
-* Implement `Content-Security-Policy-Report-Only` header first to monitor inline script usage, followed by enforced CSP with cryptographic nonces for inline scripts.
+#### C. Required Code Changes
+* Implement an enforced `Content-Security-Policy` HTTP header in `.htaccess` via `mod_headers.c`.
+* Implement a fallback programmatic header in `php/bootstrap_security.php` for environments without `mod_headers`.
+* Directives:
+  * `default-src 'self'`: Default fallback to origin.
+  * `script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net`: Allows application scripts and trusted CDNs while strictly omitting `unsafe-eval`.
+  * `style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com`: Allows application styles and Google Fonts.
+  * `font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com`: Allows trusted font assets.
+  * `img-src 'self' data: blob:`: Allows local avatars, images, and data URIs.
+  * `connect-src 'self'`: Restricts AJAX/fetch/XHR strictly to origin.
+  * `object-src 'none'`: Prohibits plugins (Flash, Java, Silverlight, ActiveX).
+  * `frame-src 'none'`: Prohibits embedding third-party frames.
+  * `base-uri 'self'`: Prevents base-tag injection hijacking.
+  * `form-action 'self'`: Restricts form targets strictly to origin.
+  * `frame-ancestors 'self'`: Prevents external clickjacking framing.
 
 #### D. Actual Implementation
-* **Deferred to Phase 2** because immediate strict enforcement would block existing inline script event handlers (`onclick`) across legacy templates.
+* Added directive in root [`.htaccess`](file:///c:/xampp/htdocs/Daakpion/.htaccess#L23-L27).
+* Added fallback header in [`php/bootstrap_security.php`](file:///c:/xampp/htdocs/Daakpion/php/bootstrap_security.php#L28-L34).
 
 #### E. Test and Verification
-* **Status:** **Not tested**.
+* **Test Suite:** `tests/Phase2RemediationTest.php` (Section 4: Tests 4.1–4.8)
+* Root `.htaccess` declares valid `Content-Security-Policy` header. **[PASS]**
+* Restricts `object-src 'none'`, `frame-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'self'`. **[PASS]**
+* Explicitly omits `unsafe-eval`. **[PASS]**
+* Live HTTP probe via Apache confirms active emission of `Content-Security-Policy` header. **[PASS]**
 
 #### F. Remaining Risk
-* Defense-in-depth against prospective XSS depends primarily on output escaping (`htmlspecialchars`).
+* Inline event handlers in legacy templates currently require `'unsafe-inline'`. Future phases should refactor inline listeners to external script files and transition to nonce-based or hash-based CSP.
 
 ---
 
@@ -404,9 +463,9 @@ echo "Error: " . $e->getMessage();
 --- a/php/send_message.php
 +++ b/php/send_message.php
 @@ -14,6 +14,14 @@ if (!isset($_SESSION['user_id'])) {
- 
+
  SessionManager::checkRestrictedAccess();
- 
+
 +// ── 1. CSRF Protection (Resolves DP-VULN-02) ─────────────────────────────────
 +$submittedCsrf = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
 +if (!CsrfProtection::validateToken($submittedCsrf)) {
@@ -420,7 +479,7 @@ echo "Error: " . $e->getMessage();
 @@ -45,6 +53,27 @@ if (mb_strlen($message) > 2000) {
      exit("Message too long. Maximum is 2000 characters.");
  }
- 
+
 +// ── 2. Authorization: Verify Active Friendship ───────────────────────────────
 +// Resolves DP-VULN-01: Prohibits messaging users who are not active confirmed friends.
 +$friendCheck = $conn->prepare("
@@ -457,9 +516,9 @@ echo "Error: " . $e->getMessage();
 --- a/php/send_request.php
 +++ b/php/send_request.php
 @@ -14,6 +14,13 @@ if (!isset($_SESSION['user_id'])) {
- 
+
  SessionManager::checkRestrictedAccess();
- 
+
 +// ── 1. CSRF Protection (Resolves DP-VULN-02) ─────────────────────────────────
 +$submittedCsrf = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
 +if (!CsrfProtection::validateToken($submittedCsrf)) {
@@ -489,9 +548,9 @@ echo "Error: " . $e->getMessage();
 --- a/php/respond_request.php
 +++ b/php/respond_request.php
 @@ -14,6 +14,13 @@ if (!isset($_SESSION['user_id'])) {
- 
+
  SessionManager::checkRestrictedAccess();
- 
+
 +// ── 1. CSRF Protection (Resolves DP-VULN-02) ─────────────────────────────────
 +$submittedCsrf = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
 +if (!CsrfProtection::validateToken($submittedCsrf)) {
@@ -551,7 +610,7 @@ echo "Error: " . $e->getMessage();
  <?php
  // php/migrate_security.php — Database Schema Migration for Security Hardening
  declare(strict_types=1);
- 
+
 +if (php_sapi_name() !== 'cli') {
 +    http_response_code(403);
 +    exit("Forbidden: This administrative script can only be executed via the CLI.\n");
@@ -684,21 +743,112 @@ If unexpected issues arise in production:
 | :---: | :--- | :---: | :---: | :---: | :--- |
 | **`DP-VULN-01`** | Missing Active-Friendship Authorization | High | **Fixed and tested** | `Phase1RemediationTest` (Tests 1.1–1.5) | None. Direct messaging strictly restricted to active friends. |
 | **`DP-VULN-02`** | Missing or Inconsistent CSRF Protection | High | **Fixed and tested** | `Phase1RemediationTest` (Tests 2.1–2.5) | None for remediated endpoints. |
-| **`DP-VULN-03`** | AES-CBC Encryption Without MAC (AEAD) | Medium | **Not implemented** | Deferred to Phase 2 | Legacy CBC ciphertext susceptible to bit-flipping if DB compromised. |
+| **`DP-VULN-03`** | AES-CBC Encryption Without MAC (AEAD) | Medium | **Fixed and tested** | `Phase2RemediationTest` (Tests 1.1–1.21) | Stored legacy CBC messages remain until naturally aged; backward-compatible read decrypts safely. Plaintext never logged. |
 | **`DP-VULN-04`** | SQL Error & Internal Detail Disclosure | Low-Med | **Fixed and tested** | `Phase1RemediationTest` (Static & Dynamic) | None. Client-facing errors sanitized; diagnostics logged to server. |
 | **`DP-VULN-05`** | Web Exposure of Migrations & Tests | Med-High | **Fixed and tested** | `Phase1RemediationTest` (Dynamic HTTP curl) | None in Apache environment with `AllowOverride All`. |
-| **`DP-VULN-06`** | Unbounded User and Message Queries | Low-Med | **Not implemented** | Deferred to Phase 2 | Large chat histories may impact response latency. |
-| **`DP-VULN-07`** | Development OTP / Token Disclosure | Medium | **Not implemented** | Deferred to Phase 2 | Development convenience checks should be disabled in production. |
-| **`DP-VULN-08`** | Missing Content Security Policy (CSP) | Low-Med | **Not implemented** | Deferred to Phase 2 | Missing defense-in-depth header against hypothetical future XSS. |
+| **`DP-VULN-06`** | Unbounded User and Message Queries | Low-Med | **Fixed and tested** | `Phase2RemediationTest` (Tests 2.1–2.22) | Large histories require client-side pagination / history scrolling (`before_id`) to view older archives. |
+| **`DP-VULN-07`** | Development OTP / Token Disclosure | Medium | **Fixed and tested** | `Phase2RemediationTest` (Tests 3.1–3.12) | None when `APP_ENV=production` is deployed; fails closed to production if unset. |
+| **`DP-VULN-08`** | Missing Content Security Policy (CSP) | Low-Med | **Fixed and tested** | `Phase2RemediationTest` (Tests 4.1–4.8) | Inline handlers permitted via `'unsafe-inline'`; future refactoring recommended to achieve strict nonce-based CSP. |
 
 ### Confirmed Security Improvements
 * **Zero Unauthorized Messaging:** Arbitrary users can no longer message targets without mutual accepted friendship.
 * **Complete CSRF Protection on Social Actions:** Malicious third-party sites cannot forge friend requests, acceptances, or chat messages.
-* **Hardened Error Surface:** No SQL syntax or database internal error diagnostics are leaked to clients.
+* **Authenticated AEAD Chat Encryption:** All new messages are encrypted using `AES-256-GCM` with random 12-byte nonces and 16-byte authentication tags; ciphertext tampering is detected and fails closed.
+* **Bounded Resource Consumption:** Message histories and user queries are strictly paginated and capped, preventing database memory exhaustion.
+* **Fail-Closed Environment Architecture:** Sensitive OTPs and password reset tokens are strictly suppressed from all output in production.
+* **Hardened Content Security Policy:** Prohibits plugins (`object-src 'none'`), clickjacking (`frame-ancestors 'self'`), nested frames (`frame-src 'none'`), base-tag hijacking (`base-uri 'self'`), and script evaluation (`unsafe-eval` omitted).
 * **Protected Administrative Surface:** Migration scripts and automated test suites are inaccessible via web browsers.
+* **Hardened Error Surface:** No SQL syntax or database internal error diagnostics are leaked to clients.
 
-### Recommended Next Remediation Phase (Phase 2 Roadmap)
-1. **Authenticated Encryption Migration (`DP-VULN-03`):** Transition messaging encryption to `AES-256-GCM` with dual-mode decryption to seamlessly support legacy messages.
-2. **Cursor-Based Pagination (`DP-VULN-06`):** Implement `LIMIT 50` query pagination in `get_messages.php` with infinite-scroll handling in `chatboard.php`.
-3. **Environment Hardening (`DP-VULN-07`):** Replace `localhost` string checks with explicit `APP_ENV` configuration.
-4. **Content Security Policy (`DP-VULN-08`):** Deploy `Content-Security-Policy-Report-Only` and migrate inline event handlers to external script listeners.
+---
+
+## Section J — Phase 2 Remediation Diffs & Verification Log
+
+### 1. `php/Security/CryptoService.php` — AES-256-GCM AEAD Implementation
+```diff
++    public static function encryptMessage(string $plaintext): string
++    {
++        $key = self::getMessageKey();
++        $iv  = random_bytes(12); // Standard 96-bit nonce for GCM
++        $tag = '';
++        $ciphertext = openssl_encrypt($plaintext, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag, '', 16);
++        if ($ciphertext === false) {
++            throw new \RuntimeException("Message encryption failed.");
++        }
++        return 'v2:gcm:' . base64_encode($iv) . ':' . base64_encode($tag) . ':' . base64_encode($ciphertext);
++    }
++
++    public static function decryptMessage(string $payload): ?string
++    {
++        if ($payload === '') return null;
++        $key = self::getMessageKey();
++        // Format: v2:gcm:<iv_b64>:<tag_b64>:<cipher_b64>
++        if (str_starts_with($payload, 'v2:gcm:')) {
++            $parts = explode(':', $payload);
++            if (count($parts) !== 5) return null;
++            $iv = base64_decode($parts[2], true);
++            $tag = base64_decode($parts[3], true);
++            $ciphertext = base64_decode($parts[4], true);
++            if ($iv === false || $tag === false || $ciphertext === false) return null;
++            $plain = openssl_decrypt($ciphertext, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag);
++            return $plain === false ? null : $plain;
++        }
++        // Legacy AES-256-CBC Fallback (Read-Only)
++        ...
++    }
+```
+
+### 2. `php/get_messages.php` — Bounded Cursor Pagination & Safe Decryption
+```diff
++$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
++if ($limit < 1) $limit = 50;
++if ($limit > 100) $limit = 100;
++$since_id  = isset($_GET['since_id']) ? (int)$_GET['since_id'] : 0;
++$before_id = isset($_GET['before_id']) ? (int)$_GET['before_id'] : 0;
++
++if ($since_id > 0) {
++    $stmt = $conn->prepare("SELECT ... AND id > ? ORDER BY id ASC LIMIT ?");
++    $stmt->bind_param("iiiii", $user_id, $other_id, $other_id, $user_id, $since_id, $limit);
++} elseif ($before_id > 0) {
++    $stmt = $conn->prepare("SELECT ... AND id < ? ORDER BY id DESC LIMIT ?");
++    $stmt->bind_param("iiiii", $user_id, $other_id, $other_id, $user_id, $before_id, $limit);
++} else {
++    $stmt = $conn->prepare("SELECT ... ORDER BY id DESC LIMIT ?");
++    $stmt->bind_param("iiiii", $user_id, $other_id, $other_id, $user_id, $limit);
++}
+```
+
+### 3. `php/Security/Environment.php` — Fail-Closed Environment Architecture
+```diff
++class Environment
++{
++    public static function getEnvironment(): string
++    {
++        $env = getenv('APP_ENV');
++        if ($env === false && isset($_ENV['APP_ENV'])) {
++            $env = (string)$_ENV['APP_ENV'];
++        }
++        if ($env === false && defined('APP_ENV')) {
++            $env = (string)constant('APP_ENV');
++        }
++        $env = strtolower(trim((string)$env));
++        if (in_array($env, ['development', 'test', 'production'], true)) {
++            return $env;
++        }
++        return 'production'; // Secure fail-closed default
++    }
++
++    public static function allowDevSecrets(): bool
++    {
++        return in_array(self::getEnvironment(), ['development', 'test'], true);
++    }
++}
+```
+
+### 4. Comprehensive Phase 2 Test Verification
+All automated suites executed on `security-remediation-phase2`:
+* **`tests/Phase2RemediationTest.php`:** 64 Passed, 0 Failed
+* **`tests/SecurityTestSuite.php`:** 46 Passed, 0 Failed
+* **`tests/Phase1RemediationTest.php`:** 46 Passed, 0 Failed
+* **`tests/IntegrationFlowTest.php`:** 3 Passed, 0 Failed
+* **Total Automated Verifications:** **159 Passed | 0 Failed**

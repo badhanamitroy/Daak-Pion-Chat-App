@@ -49,6 +49,25 @@ if (!$row) {
 }
 
 if ($action === 'accept') {
+    // Defense-in-depth: Ensure relationship is not blocked (Resolves DP-P3-001)
+    $blockCheck = $conn->prepare("
+        SELECT id FROM friends
+        WHERE ((user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?))
+          AND status = 'blocked'
+        LIMIT 1
+    ");
+    if ($blockCheck) {
+        $blockCheck->bind_param("iiii", $row['sender_id'], $row['receiver_id'], $row['receiver_id'], $row['sender_id']);
+        $blockCheck->execute();
+        $blockCheck->store_result();
+        if ($blockCheck->num_rows > 0) {
+            $blockCheck->close();
+            http_response_code(403);
+            exit("Action not allowed.");
+        }
+        $blockCheck->close();
+    }
+
     $conn->begin_transaction();
     try {
         $up = $conn->prepare("UPDATE friendrequests SET status='accepted', responded_at=NOW() WHERE id=?");
@@ -56,10 +75,25 @@ if ($action === 'accept') {
         $up->execute();
         $up->close();
 
-        $ins = $conn->prepare("INSERT INTO friends (user1_id, user2_id, friends_since, status) VALUES (?,?, NOW(),'active')");
-        $ins->bind_param("ii", $row['sender_id'], $row['receiver_id']);
-        $ins->execute();
-        $ins->close();
+        // Check if already active friends
+        $activeCheck = $conn->prepare("
+            SELECT id FROM friends
+            WHERE ((user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?))
+              AND status = 'active'
+            LIMIT 1
+        ");
+        $activeCheck->bind_param("iiii", $row['sender_id'], $row['receiver_id'], $row['receiver_id'], $row['sender_id']);
+        $activeCheck->execute();
+        $activeCheck->store_result();
+        $alreadyActive = ($activeCheck->num_rows > 0);
+        $activeCheck->close();
+
+        if (!$alreadyActive) {
+            $ins = $conn->prepare("INSERT INTO friends (user1_id, user2_id, friends_since, status) VALUES (?,?, NOW(),'active')");
+            $ins->bind_param("ii", $row['sender_id'], $row['receiver_id']);
+            $ins->execute();
+            $ins->close();
+        }
 
         $conn->commit();
         echo "Friend request accepted!";
@@ -71,7 +105,8 @@ if ($action === 'accept') {
         echo "An error occurred while accepting the request. Please try again.";
     }
 } else {
-    $up = $conn->prepare("UPDATE friendrequests SET status='declined', responded_at=NOW() WHERE id=?");
+    // Resolves DP-P3-003: Database enum is 'pending','accepted','rejected'. Use canonical 'rejected'.
+    $up = $conn->prepare("UPDATE friendrequests SET status='rejected', responded_at=NOW() WHERE id=?");
     if ($up) {
         $up->bind_param("i", $request_id);
         $up->execute();

@@ -203,7 +203,7 @@ class SessionManager
 
         if ($db && isset($_SESSION['user_id'])) {
             $userId = (int)$_SESSION['user_id'];
-            $stmt = $db->prepare("UPDATE users SET status = 'Offline' WHERE id = ?");
+            $stmt = $db->prepare("UPDATE users SET status = 'Offline', last_activity_at = NULL WHERE id = ?");
             if ($stmt) {
                 $stmt->bind_param("i", $userId);
                 $stmt->execute();

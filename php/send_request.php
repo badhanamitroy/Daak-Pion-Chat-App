@@ -36,32 +36,38 @@ if ($sender_id === $receiver_id) {
     exit("You cannot send a friend request to yourself");
 }
 
-// Check if already friends
-$friendsCheck = $conn->prepare("
-    SELECT id FROM friends
-    WHERE ((user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?))
-      AND status = 'active'
+// Check if relationship is blocked or already active friends (Resolves DP-P3-001)
+$relCheck = $conn->prepare("
+    SELECT status FROM friends
+    WHERE (user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)
     LIMIT 1
 ");
-if (!$friendsCheck) {
-    error_log("Friend request friendsCheck failed: " . $conn->error);
+if (!$relCheck) {
+    error_log("Friend request relCheck failed: " . $conn->error);
     http_response_code(500);
     exit("A system error occurred. Please try again later.");
 }
 
-$friendsCheck->bind_param("iiii", $sender_id, $receiver_id, $receiver_id, $sender_id);
-$friendsCheck->execute();
-$friendsCheck->store_result();
-if ($friendsCheck->num_rows > 0) {
-    $friendsCheck->close();
-    exit("You are already friends");
-}
-$friendsCheck->close();
+$relCheck->bind_param("iiii", $sender_id, $receiver_id, $receiver_id, $sender_id);
+$relCheck->execute();
+$relRes = $relCheck->get_result();
+$relRow = $relRes->fetch_assoc();
+$relCheck->close();
 
-// Check if A → B pending request already exists
+if ($relRow) {
+    if ($relRow['status'] === 'blocked') {
+        http_response_code(403);
+        exit("Action not allowed.");
+    }
+    if ($relRow['status'] === 'active') {
+        exit("You are already friends");
+    }
+}
+
+// Check if A → B request already exists (Resolves DP-P3-003)
 $checkAB = $conn->prepare("
-    SELECT id FROM friendrequests
-    WHERE sender_id = ? AND receiver_id = ? AND status = 'pending'
+    SELECT id, status FROM friendrequests
+    WHERE sender_id = ? AND receiver_id = ?
     LIMIT 1
 ");
 if (!$checkAB) {
@@ -72,17 +78,45 @@ if (!$checkAB) {
 
 $checkAB->bind_param("ii", $sender_id, $receiver_id);
 $checkAB->execute();
-$checkAB->store_result();
-if ($checkAB->num_rows > 0) {
-    $checkAB->close();
-    exit("You already sent a request to this person");
-}
+$resAB = $checkAB->get_result();
+$rowAB = $resAB->fetch_assoc();
 $checkAB->close();
 
-// Check if B → A pending request already exists (reverse direction)
+if ($rowAB) {
+    if ($rowAB['status'] === 'pending') {
+        exit("You already sent a request to this person");
+    }
+    if ($rowAB['status'] === 'accepted') {
+        exit("You are already friends");
+    }
+    // If previous request was rejected, safely reset to pending (re-send)
+    $reSendStmt = $conn->prepare("
+        UPDATE friendrequests
+        SET status = 'pending', sent_at = NOW(), responded_at = NULL
+        WHERE id = ?
+    ");
+    if (!$reSendStmt) {
+        error_log("Friend request reSend prepare failed: " . $conn->error);
+        http_response_code(500);
+        exit("A system error occurred. Please try again later.");
+    }
+    $reSendStmt->bind_param("i", $rowAB['id']);
+    if ($reSendStmt->execute()) {
+        $reSendStmt->close();
+        echo "Friend request sent!";
+        exit;
+    } else {
+        error_log("Friend request reSend execute failed: " . $reSendStmt->error);
+        $reSendStmt->close();
+        http_response_code(500);
+        exit("Error sending request. Please try again.");
+    }
+}
+
+// Check if B → A request already exists (reverse direction)
 $checkBA = $conn->prepare("
-    SELECT id FROM friendrequests
-    WHERE sender_id = ? AND receiver_id = ? AND status = 'pending'
+    SELECT id, status FROM friendrequests
+    WHERE sender_id = ? AND receiver_id = ?
     LIMIT 1
 ");
 if (!$checkBA) {
@@ -93,14 +127,20 @@ if (!$checkBA) {
 
 $checkBA->bind_param("ii", $receiver_id, $sender_id);
 $checkBA->execute();
-$checkBA->store_result();
-if ($checkBA->num_rows > 0) {
-    $checkBA->close();
-    exit("This person has already sent you a friend request — check your requests");
-}
+$resBA = $checkBA->get_result();
+$rowBA = $resBA->fetch_assoc();
 $checkBA->close();
 
-// All clear — insert the request
+if ($rowBA) {
+    if ($rowBA['status'] === 'pending') {
+        exit("This person has already sent you a friend request — check your requests");
+    }
+    if ($rowBA['status'] === 'accepted') {
+        exit("You are already friends");
+    }
+}
+
+// All clear — insert the brand new request
 $stmt = $conn->prepare("
     INSERT INTO friendrequests (sender_id, receiver_id, status, sent_at)
     VALUES (?, ?, 'pending', NOW())
@@ -120,3 +160,4 @@ if ($stmt->execute()) {
     echo "Error sending request. Please try again.";
 }
 $stmt->close();
+
