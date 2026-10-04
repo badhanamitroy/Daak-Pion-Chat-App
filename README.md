@@ -17,6 +17,9 @@
 - 📱 **Responsive Design** — Works on desktop, tablet & mobile
 
 ---
+### OTP Page 
+![DaakPion Banner](DaakPion-OTP-page.png)
+
 
 ## 🎨 Design System
 
