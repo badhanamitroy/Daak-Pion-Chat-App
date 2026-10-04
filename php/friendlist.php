@@ -30,7 +30,7 @@ $user = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
 $userName   = htmlspecialchars(trim(($user['fname'] ?? '') . " " . ($user['iname'] ?? '')));
-$profilePic = !empty($user['dp']) ? "../" . $user['dp'] : "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+$profilePic = (!empty($user['dp']) && $user['dp'] !== 'ProfilePics/default.jpg') ? "../" . $user['dp'] : "../dp.png";
 
 $friends = [];
 $fq = "
@@ -327,7 +327,7 @@ $stmt->close();
   <!-- ── Shared Header ── -->
   <header>
     <div class="left">
-      <img src="../Daak-pion.png" alt="DaakPion Logo">
+      <img src="../Dakpion-logo.png" alt="DaakPion Logo">
       <h1>DaakPion</h1>
     </div>
     <div class="right">
@@ -365,7 +365,7 @@ $stmt->close();
           <?php foreach ($friends as $fr): ?>
             <div class="person-card">
               <img class="card-photo"
-                   src="<?php echo !empty($fr['dp']) ? '../'.htmlspecialchars($fr['dp']) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png'; ?>"
+                   src="<?php echo (!empty($fr['dp']) && $fr['dp'] !== 'ProfilePics/default.jpg') ? '../'.htmlspecialchars($fr['dp']) : '../dp.png'; ?>"
                    alt="<?php echo htmlspecialchars($fr['fname'].' '.$fr['iname']); ?>">
               <div class="card-body">
                 <div class="card-name"><?php echo htmlspecialchars($fr['fname'].' '.$fr['iname']); ?></div>
@@ -392,7 +392,7 @@ $stmt->close();
         <?php foreach ($pending as $req): ?>
           <div class="person-card">
             <img class="card-photo"
-                 src="<?php echo !empty($req['dp']) ? '../'.htmlspecialchars($req['dp']) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png'; ?>"
+                 src="<?php echo (!empty($req['dp']) && $req['dp'] !== 'ProfilePics/default.jpg') ? '../'.htmlspecialchars($req['dp']) : '../dp.png'; ?>"
                  alt="<?php echo htmlspecialchars($req['fname'].' '.$req['lname']); ?>">
             <div class="card-body">
               <div class="card-name"><?php echo htmlspecialchars($req['fname'].' '.$req['lname']); ?></div>
@@ -427,7 +427,7 @@ $stmt->close();
           <?php foreach ($allUsers as $u): ?>
             <div class="person-card">
               <img class="card-photo"
-                   src="<?php echo !empty($u['dp']) ? '../'.htmlspecialchars($u['dp']) : 'https://cdn-icons-png.flaticon.com/512/149/149071.png'; ?>"
+                   src="<?php echo (!empty($u['dp']) && $u['dp'] !== 'ProfilePics/default.jpg') ? '../'.htmlspecialchars($u['dp']) : '../dp.png'; ?>"
                    alt="<?php echo htmlspecialchars($u['fname'].' '.$u['iname']); ?>">
               <div class="card-body">
                 <div class="card-name user-name"><?php echo htmlspecialchars($u['fname'].' '.$u['iname']); ?></div>

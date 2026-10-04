@@ -15,7 +15,7 @@
   <!-- ── Top Navigation ── -->
   <nav class="topnav">
     <a class="nav-brand" href="index.html">
-      <img src="Daak-pion.png" alt="DaakPion Logo">
+      <img src="Dakpion-logo.png" alt="DaakPion Logo">
       <span>DaakPion</span>
     </a>
   </nav>
@@ -26,7 +26,7 @@
     <!-- Left: Branding -->
     <div class="hero-left">
       <div class="brand-logo">
-        <img src="Daak-pion-Dark-logo.png" alt="DaakPion">
+        <img src="Dakpion-logo.png" alt="DaakPion">
         <span class="brand-name">DaakPion</span>
       </div>
       <h2>Connect with friends and the world around you.</h2>
@@ -54,6 +54,12 @@
             <input type="password" name="password" id="password" placeholder="Password" required autocomplete="current-password">
             <i class="fa-solid fa-eye eye-icon" id="togglePassword"></i>
           </div>
+          <div class="form-options">
+            <label class="remember-label" for="remember_me">
+              <input type="checkbox" name="remember_me" id="remember_me" value="1" checked>
+              <span>Remember me on this device</span>
+            </label>
+          </div>
           <button type="submit" class="btn-login" id="login-btn">Log In</button>
         </form>
 
@@ -79,6 +85,26 @@
 
   <script src="seepassword.js"></script>
   <script>
+    // ── Check if already authenticated (e.g. from persistent login cookie) ──
+    (async function checkExistingAuth() {
+      try {
+        const checkRes = await fetch('php/check_auth.php', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          cache: 'no-store'
+        });
+        if (checkRes.ok) {
+          const authData = await checkRes.json();
+          if (authData.authenticated && authData.redirect) {
+            const dest = authData.redirect.startsWith('php/') ? authData.redirect : 'php/' + authData.redirect;
+            window.location.replace(dest);
+          }
+        }
+      } catch (_) {
+        // Silently allow login form rendering if check fails
+      }
+    })();
+
     // Handle error message passed via query param (e.g. from standard form redirects)
     const urlParams = new URLSearchParams(window.location.search);
     const errorParam = urlParams.get('error');
@@ -88,17 +114,28 @@
       loginError.classList.add('show');
     }
 
-    // Smooth asynchronous login with instant generic error feedback
+    // ── Reliable Asynchronous Login with Single-Submission & Timeout Recovery ──
     const loginForm = document.getElementById('loginForm');
     const loginBtn = document.getElementById('login-btn');
+    let isSubmitting = false;
 
-    if (loginForm) {
+    if (loginForm && loginBtn) {
       loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // Guard against duplicate concurrent submissions
+        if (isSubmitting) {
+          return;
+        }
+
+        isSubmitting = true;
         loginError.textContent = '';
         loginError.classList.remove('show');
         loginBtn.textContent = 'Logging in…';
         loginBtn.disabled = true;
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
 
         try {
           const formData = new FormData(loginForm);
@@ -106,26 +143,53 @@
             method: 'POST',
             body: formData,
             headers: {
-              'Accept': 'application/json'
-            }
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            signal: controller.signal
           });
 
-          const data = await res.json();
-          if (data.success && data.redirect) {
-            window.location.href = data.redirect.startsWith('php/') ? data.redirect : 'php/' + data.redirect;
-          } else {
-            loginError.textContent = data.message || 'Invalid email or password.';
-            loginError.classList.add('show');
-            loginBtn.textContent = 'Log In';
-            loginBtn.disabled = false;
+          clearTimeout(timeoutId);
+
+          let data;
+          try {
+            data = await res.json();
+          } catch (jsonErr) {
+            throw new Error('Invalid response received from server.');
           }
+
+          if (data && data.success && data.redirect) {
+            loginBtn.textContent = 'Redirecting…';
+            const dest = data.redirect.startsWith('php/') ? data.redirect : 'php/' + data.redirect;
+            window.location.href = dest;
+            return;
+          }
+
+          // Handle login rejection (invalid credentials, rate limited, etc.)
+          loginError.textContent = (data && data.message) ? data.message : 'Invalid email or password.';
+          loginError.classList.add('show');
+          loginBtn.textContent = 'Log In';
+          loginBtn.disabled = false;
+          isSubmitting = false;
         } catch (err) {
-          // If JSON parse or network fails, fallback to traditional submit
-          loginForm.submit();
+          clearTimeout(timeoutId);
+
+          if (err.name === 'AbortError') {
+            loginError.textContent = 'The login request timed out. Please try again.';
+          } else {
+            loginError.textContent = err.message || 'Unable to connect to the login service. Please check your connection and try again.';
+          }
+          loginError.classList.add('show');
+
+          // Always reset loading state so user can safely retry without page refresh
+          loginBtn.textContent = 'Log In';
+          loginBtn.disabled = false;
+          isSubmitting = false;
         }
       });
     }
   </script>
 </body>
 </html>
+
 

@@ -22,11 +22,11 @@ Options -Indexes
     # Control referrer information sent with requests
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
 
-    # Restrict browser features not needed by this app
-    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    # Restrict browser features not needed by this app (enable microphone for voice messages)
+    Header always set Permissions-Policy "camera=(), microphone=(self), geolocation=()"
 
     # Content Security Policy (CSP) — Enforced Defense-in-Depth (Resolves DP-VULN-08, DP-P3-007)
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';"
 </IfModule>
 
 # ─── Ensure proper MIME types for CSS and JS ────────────────────────────────
@@ -49,7 +49,7 @@ Options -Indexes
 </FilesMatch>
 
 # ─── Deny direct access to secrets, configuration, migrations and logs (Resolves DP-P3-005) ─────────
-<FilesMatch "^(config\.php|db_connect\.php|app_config\.php|security_secrets.*\.php|\.env.*|\.git.*|.*\.log|migrate_security\.php)$">
+<FilesMatch "^(config\.php|db_connect\.php|app_config\.php|security_secrets.*\.php|\.env.*|\.git.*|.*\.log|migrate_.*\.php|composer\.json|composer\.lock)$">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>

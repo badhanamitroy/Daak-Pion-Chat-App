@@ -112,9 +112,20 @@ class PasswordResetService
             'expires_in' => self::TOKEN_EXPIRY_SECONDS
         ]);
 
-        // For development/testing verification, return dev_token only if permitted by Environment
+        // 7. Dispatch Password Reset email via centralized MailService
+        $baseUrl = MailService::getAppBaseUrl();
+        $resetUrl = $baseUrl . '/php/reset_password.php?token=' . urlencode($rawToken);
+        $userName = trim(($user['fname'] ?? '') . ' ' . ($user['lname'] ?? ''));
+
+        $mailService = new MailService($this->db, $this->logger);
+        $emailSent = $mailService->sendPasswordReset($email, $userName, $resetUrl, $userId);
+
+        // For development/testing verification, return dev_token and dev diagnostics only if permitted by Environment
         if (Environment::allowDevSecrets()) {
             $genericResponse['dev_token'] = $rawToken;
+            if (!$emailSent && $mailService->getLastError()) {
+                $genericResponse['dev_mail_error'] = $mailService->getLastError();
+            }
         }
         return $genericResponse;
     }

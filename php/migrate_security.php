@@ -31,12 +31,15 @@ if (!in_array('temp_password_expires_at', $userCols)) {
     $queries[] = "ALTER TABLE users ADD COLUMN temp_password_expires_at DATETIME NULL";
 }
 if (!in_array('two_factor_enabled', $userCols)) {
-    $queries[] = "ALTER TABLE users ADD COLUMN two_factor_enabled TINYINT(1) NOT NULL DEFAULT 0";
+    $queries[] = "ALTER TABLE users ADD COLUMN two_factor_enabled TINYINT(1) NOT NULL DEFAULT 1";
+} else {
+    $queries[] = "ALTER TABLE users MODIFY COLUMN two_factor_enabled TINYINT(1) NOT NULL DEFAULT 1";
 }
 if (!in_array('last_activity_at', $userCols)) {
     $queries[] = "ALTER TABLE users ADD COLUMN last_activity_at DATETIME NULL, ADD INDEX idx_last_activity (last_activity_at)";
 }
 
+$queries[] = "UPDATE users SET two_factor_enabled = 1 WHERE two_factor_enabled = 0 OR two_factor_enabled IS NULL";
 
 foreach ($queries as $q) {
     if ($conn->query($q)) {
@@ -119,4 +122,28 @@ if ($conn->query($twoFactorTable)) {
     echo " Error with two_factor_otps: " . $conn->error . "\n";
 }
 
+// 6. Create persistent_logins table (Resolves Issue 2: Persistent Authentication)
+$persistentTable = "CREATE TABLE IF NOT EXISTS persistent_logins (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    selector VARCHAR(32) NOT NULL UNIQUE,
+    validator_hash VARCHAR(64) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_used_at DATETIME NULL,
+    ip_address VARCHAR(45) NULL,
+    user_agent VARCHAR(255) NULL,
+    INDEX idx_persistent_selector (selector),
+    INDEX idx_persistent_user (user_id),
+    INDEX idx_persistent_expires (expires_at),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+if ($conn->query($persistentTable)) {
+    echo " Table persistent_logins verified.\n";
+} else {
+    echo " Error with persistent_logins: " . $conn->error . "\n";
+}
+
 echo "Migration completed successfully!\n";
+

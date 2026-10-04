@@ -28,4 +28,20 @@ daakpion_facebook_redesign_plan.md
 php/security_secrets.php
 .env
 logs/
+vendor/
+composer.phar
+
+# Generated test emails
+emails/*.html
+emails/*.txt
+!emails/.gitkeep
+!emails/.htaccess
+
+# Uploaded message attachments (recreate locally)
+uploads/message_media/audio/*
+uploads/message_media/documents/*
+uploads/message_media/images/*
+uploads/message_media/videos/*
+!uploads/message_media/*/.gitkeep
+!uploads/.htaccess
 

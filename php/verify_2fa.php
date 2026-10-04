@@ -25,7 +25,20 @@ $rateLimiter = new RateLimiter($conn);
 
 $error   = null;
 $message = null;
-$devOtp  = null;
+
+// Initial load check for mail delivery status from userlogin.php
+if (!empty($_SESSION['2fa_mail_delivery_failed'])) {
+    unset($_SESSION['2fa_mail_delivery_failed']);
+    if (!empty($_SESSION['2fa_mail_dev_error'])) {
+        unset($_SESSION['2fa_mail_dev_error']);
+    }
+    $error = "We couldn't send the verification code right now. Please try again later.";
+}
+
+// Clean up any legacy dev OTP session key if present
+if (isset($_SESSION['2fa_dev_otp'])) {
+    unset($_SESSION['2fa_dev_otp']);
+}
 
 // Handle Resend OTP action
 if (isset($_POST['resend_otp'])) {
@@ -39,9 +52,14 @@ if (isset($_POST['resend_otp'])) {
             $error = "Please wait {$resendHit['retryAfter']} seconds before requesting a new code.";
         } else {
             $rawOtp = $twoFactor->issueOtp($userId, $email);
-            $message = "A new verification code has been sent.";
-            if (\Daakpion\Security\Environment::allowDevSecrets()) {
-                $devOtp = $rawOtp;
+            $mailService = new \Daakpion\Security\MailService($conn, $logger);
+            $userName = trim(($user['fname'] ?? '') . ' ' . ($user['lname'] ?? ''));
+            $emailSent = $mailService->sendTwoFactorOtp($email, $userName, $rawOtp, $userId);
+
+            if ($emailSent) {
+                $message = "A new verification code has been sent to your email.";
+            } else {
+                $error = "We couldn't send the verification code right now. Please try again later.";
             }
         }
     }
@@ -56,8 +74,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_otp'])) {
         $res = $twoFactor->verifyOtp($userId, $otp, $email);
 
         if ($res['success']) {
+            $rememberMe = !empty($_SESSION['2fa_preauth_remember_me']);
+
             // Clear pre-auth session state
-            unset($_SESSION['2fa_preauth_user_id'], $_SESSION['2fa_preauth_email'], $_SESSION['2fa_preauth_user']);
+            unset($_SESSION['2fa_preauth_user_id'], $_SESSION['2fa_preauth_email'], $_SESSION['2fa_preauth_user'], $_SESSION['2fa_preauth_remember_me']);
 
             // Update user status and activity timestamp (Resolves DP-P4-009)
             $upd = $conn->prepare("UPDATE users SET status = 'Active now', last_activity_at = NOW() WHERE id = ?");
@@ -68,12 +88,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_otp'])) {
             $isTemp = !empty($user['is_temporary_password']);
             SessionManager::loginUser($user, $isTemp);
 
+            // Establish persistent login credential if requested
+            if ($rememberMe) {
+                \Daakpion\Security\PersistentAuthService::issueToken($userId, $conn);
+            }
+
             $logger->log('LOGIN_SUCCESS', '2FA_COMPLETED', $userId, $email);
 
             if ($isTemp) {
                 header("Location: force_change_password.php");
             } else {
-                header("Location: chatboard.php");
+                header("Location: user-profile.php");
             }
             exit;
         } else {
@@ -146,16 +171,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_otp'])) {
       border-radius: 8px;
       font-size: 14px;
       margin-bottom: 20px;
-    }
-    .dev-box {
-      background-color: rgba(49, 162, 76, 0.15);
-      border: 1px dashed #31a24c;
-      color: #79e394;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 13px;
-      margin-bottom: 20px;
-      word-break: break-all;
     }
     .otp-input {
       width: 100%;
@@ -231,12 +246,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_otp'])) {
   <?php if ($message): ?>
     <div class="msg-banner">
       <i class="fa-solid fa-circle-check"></i> <?php echo htmlspecialchars($message); ?>
-    </div>
-  <?php endif; ?>
-
-  <?php if ($devOtp && \Daakpion\Security\Environment::allowDevSecrets()): ?>
-    <div class="dev-box">
-      <strong><i class="fa-solid fa-code"></i> Local Dev Simulated OTP:</strong> <code><?php echo htmlspecialchars($devOtp); ?></code>
     </div>
   <?php endif; ?>
 

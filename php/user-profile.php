@@ -22,7 +22,7 @@ $stmt->close();
 $userfName  = $user['fname'] ?? "User";
 $userlName  = $user['lname'] ?? "";
 $userName   = trim($userfName . " " . $userlName);
-$profilePic = !empty($user['dp'])      ? "../" . $user['dp']      : "../ProfilePics/default.jpg";
+$profilePic = (!empty($user['dp']) && $user['dp'] !== 'ProfilePics/default.jpg') ? "../" . $user['dp'] : "../dp.png";
 $coverPic   = !empty($user['coverpic']) ? "../" . $user['coverpic'] : "../Coverpics/default.jpg";
 
 // Step 3.5 — Fetch friend count (was always empty before)
@@ -60,7 +60,7 @@ $cntStmt->close();
   <!-- ── Shared Header ── -->
   <header>
     <div class="left">
-      <img src="../Daak-pion.png" alt="DaakPion Logo">
+      <img src="../Dakpion-logo.png" alt="DaakPion Logo">
       <h1>DaakPion</h1>
     </div>
     <div class="right">

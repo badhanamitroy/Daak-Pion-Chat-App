@@ -82,7 +82,7 @@ $hashedPassword = CryptoService::hashPassword($password);
 // ── 6. Insert User Record ────────────────────────────────────────────────────
 $stmt = $conn->prepare(
     "INSERT INTO users (fname, lname, email, password, status, Dp, Coverpic, password_version, is_temporary_password, two_factor_enabled) 
-     VALUES (?, ?, ?, ?, 'Offline', '', '', 1, 0, 0)"
+     VALUES (?, ?, ?, ?, 'Offline', 'dp.png', '', 1, 0, 1)"
 );
 $stmt->bind_param("ssss", $fname, $lname, $email, $hashedPassword);
 

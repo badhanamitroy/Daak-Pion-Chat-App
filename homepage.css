@@ -245,6 +245,32 @@ main.hero {
   color: var(--text-primary);
 }
 
+/* ── Form Options (Remember Me) ── */
+.form-options {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin: -4px 0 14px 2px;
+}
+.remember-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+.remember-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--blue);
+  cursor: pointer;
+}
+.remember-label:hover {
+  color: var(--text-primary);
+}
+
 /* ── Buttons ── */
 .btn-login {
   width: 100%;
@@ -261,8 +287,14 @@ main.hero {
   margin-top: 4px;
 }
 
-.btn-login:hover { background: var(--blue-hover); }
-.btn-login:active { transform: scale(0.98); }
+.btn-login:hover:not(:disabled) { background: var(--blue-hover); }
+.btn-login:active:not(:disabled) { transform: scale(0.98); }
+.btn-login:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
 
 /* Forgot password */
 .forgot-link {

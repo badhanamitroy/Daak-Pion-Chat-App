@@ -1,0 +1,18 @@
+# DaakPion — Strict Uploads Directory Protection
+# Prevents execution of any server-side code or scripts
+Options -Indexes -ExecCGI
+
+<FilesMatch "\.(php.*|phtml|phar|cgi|pl|sh|py|asp|aspx)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+<IfModule mod_mime.c>
+    RemoveHandler .php .phtml .phar .cgi .pl
+    RemoveType .php .phtml .phar .cgi .pl
+</IfModule>

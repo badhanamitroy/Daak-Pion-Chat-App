@@ -1,6 +1,11 @@
 <?php
 // bootstrap_security.php — Initializes DaakPion Security System, Autoloader & Hardened Sessions
 
+// Composer autoloader (PHPMailer and dependencies)
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    require_once __DIR__ . '/../vendor/autoload.php';
+}
+
 require_once __DIR__ . '/app_config.php';
 require_once __DIR__ . '/db_connect.php';
 
@@ -31,6 +36,7 @@ use Daakpion\Security\PasswordPolicy;
 use Daakpion\Security\TwoFactorService;
 use Daakpion\Security\PasswordResetService;
 use Daakpion\Security\CsrfProtection;
+use Daakpion\Security\PersistentAuthService;
 
 // Validate pepper immediately; if missing/invalid, throws RuntimeException
 CryptoService::getPepper();
@@ -38,10 +44,13 @@ CryptoService::getPepper();
 // Start hardened secure session
 SessionManager::startSecureSession();
 
-// Check if user is logged in and session is still valid (cross-device invalidation check)
+// Check if user is logged in, or restore persistent login from secure remember token
 if (isset($_SESSION['user_id'])) {
     SessionManager::validateSessionState($conn);
+} elseif (!empty($_COOKIE[PersistentAuthService::COOKIE_NAME])) {
+    PersistentAuthService::validateAndRestore($conn);
 }
+
 
 // ── HTTP Security Headers (Defense in Depth) ─────────────────────────────────
 if (!headers_sent() && php_sapi_name() !== 'cli') {
@@ -49,5 +58,5 @@ if (!headers_sent() && php_sapi_name() !== 'cli') {
     header("X-Content-Type-Options: nosniff");
     header("X-Frame-Options: SAMEORIGIN");
     header("Referrer-Policy: strict-origin-when-cross-origin");
-    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';");
+    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';");
 }

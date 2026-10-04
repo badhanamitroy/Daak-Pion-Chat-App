@@ -7,6 +7,7 @@ require_once __DIR__ . '/bootstrap_security.php';
 use Daakpion\Security\SessionManager;
 use Daakpion\Security\AuditLogger;
 use Daakpion\Security\CsrfProtection;
+use Daakpion\Security\PersistentAuthService;
 
 // Enforce POST method to prevent GET-based Logout CSRF
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -30,8 +31,12 @@ if ($userId) {
     $logger->log('LOGOUT', 'SUCCESS', $userId, $email);
 }
 
+// Invalidate persistent login token and remove remember cookie
+PersistentAuthService::revokeToken($conn);
+
 SessionManager::destroySession($conn);
 
 header("Location: ../index.html");
 exit;
+
 

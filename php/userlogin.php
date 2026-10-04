@@ -9,6 +9,7 @@ use Daakpion\Security\SessionManager;
 use Daakpion\Security\RateLimiter;
 use Daakpion\Security\AuditLogger;
 use Daakpion\Security\TwoFactorService;
+use Daakpion\Security\PersistentAuthService;
 
 header('X-Content-Type-Options: nosniff');
 
@@ -44,8 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     respond(false, "Invalid request method.");
 }
 
-$email    = trim($_POST['email'] ?? '');
-$password = (string)($_POST['password'] ?? '');
+$email      = trim($_POST['email'] ?? '');
+$password   = (string)($_POST['password'] ?? '');
+$rememberMe = !empty($_POST['remember_me']) && ($_POST['remember_me'] === '1' || $_POST['remember_me'] === 'on' || $_POST['remember_me'] === true);
+
 
 $clientIp    = RateLimiter::getClientIp();
 $rateLimiter = new RateLimiter($conn);
@@ -144,21 +147,32 @@ if (!empty($user['two_factor_enabled'])) {
     $twoFactor = new TwoFactorService($conn, $logger);
     $rawOtp = $twoFactor->issueOtp($userId, $email);
 
-    // Store pre-auth state in session
-    $_SESSION['2fa_preauth_user_id'] = $userId;
-    $_SESSION['2fa_preauth_email']   = $email;
-    $_SESSION['2fa_preauth_user']    = $user;
+    // Store pre-auth state in session (user is NOT authenticated yet)
+    $_SESSION['2fa_preauth_user_id']     = $userId;
+    $_SESSION['2fa_preauth_email']       = $email;
+    $_SESSION['2fa_preauth_user']        = $user;
+    $_SESSION['2fa_preauth_remember_me'] = $rememberMe;
 
-    // In explicit development/test mode, attach dev_otp to enable automated testing
+    // Dispatch OTP email via centralized MailService using real Gmail SMTP
+    $mailService = new \Daakpion\Security\MailService($conn, $logger);
+    $userName = trim(($user['fname'] ?? '') . ' ' . ($user['lname'] ?? ''));
+    $emailSent = $mailService->sendTwoFactorOtp($email, $userName, $rawOtp, $userId);
+
+    if (!$emailSent) {
+        $_SESSION['2fa_mail_delivery_failed'] = true;
+    }
+
+    // In development mode, allow dev secrets if enabled
     $extra = [];
     if (\Daakpion\Security\Environment::allowDevSecrets()) {
         $extra['dev_otp'] = $rawOtp;
     }
 
+    // Redirect to 2FA challenge. Browser/client NEVER receives the raw OTP in production.
     respond(true, "Two-factor verification required.", "verify_2fa.php", $extra);
 }
 
-// ── 9. Finalize Authenticated Session ────────────────────────────────────────
+// ── 9. Finalize Authenticated Session (When 2FA is not enabled) ───────────────
 $isTemp = !empty($user['is_temporary_password']);
 
 // Update user status and activity timestamp (Resolves DP-P4-009)
@@ -171,6 +185,11 @@ if ($updStatus) {
 
 SessionManager::loginUser($user, $isTemp);
 
+// Establish persistent login credential if requested
+if ($rememberMe) {
+    PersistentAuthService::issueToken($userId, $conn);
+}
+
 $logger->log('LOGIN_SUCCESS', 'SUCCESS', $userId, $email, [
     'is_temporary' => $isTemp
 ]);
@@ -180,4 +199,5 @@ if ($isTemp) {
     respond(true, "Temporary login. Password change required.", "force_change_password.php");
 }
 
-respond(true, "Login successful.", "chatboard.php");
+respond(true, "Login successful.", "user-profile.php");
+

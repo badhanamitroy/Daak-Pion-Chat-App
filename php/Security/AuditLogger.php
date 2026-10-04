@@ -9,9 +9,11 @@ use mysqli;
  * Records critical authentication events:
  * - LOGIN_SUCCESS, LOGIN_FAILURE, LOGIN_RATE_LIMITED
  * - 2FA_CHALLENGE_ISSUED, 2FA_SUCCESS, 2FA_FAILURE, 2FA_RATE_LIMITED
+ * - 2FA_EMAIL_SENT, 2FA_EMAIL_FAILED
  * - PASSWORD_CHANGE_SUCCESS, PASSWORD_CHANGE_FAILURE
  * - TEMPORARY_PASSWORD_ASSIGNED, TEMPORARY_PASSWORD_CONSUMED
  * - PASSWORD_RESET_REQUESTED, PASSWORD_RESET_COMPLETED, PASSWORD_RESET_FAILED
+ * - PASSWORD_RESET_EMAIL_SENT, PASSWORD_RESET_EMAIL_FAILED
  * - SESSION_INVALIDATED
  * 
  * STRICT PROHIBITIONS:
@@ -43,7 +45,7 @@ class AuditLogger
         $forbiddenKeys = [
             'password', 'new_password', 'current_password', 'confirm_password',
             'hash', 'pepper', 'token', 'reset_token', 'otp', 'code',
-            'session_id', 'secret', 'key'
+            'session_id', 'secret', 'key', 'smtp_password', 'smtp', 'authorization'
         ];
 
         foreach ($details as $k => $v) {

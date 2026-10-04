@@ -91,7 +91,7 @@ $userlName   = $user['lname'] ?? "";
 $userName    = trim($userfName . " " . $userlName);
 $userEmail   = $user['email'] ?? "";
 $twoFactorOn = !empty($user['two_factor_enabled']);
-$profilePic  = !empty($user['dp']) ? "../" . $user['dp'] : "../ProfilePics/default.jpg";
+$profilePic  = (!empty($user['dp']) && $user['dp'] !== 'ProfilePics/default.jpg') ? "../" . $user['dp'] : "../dp.png";
 $coverPic    = !empty($user['coverpic']) ? "../" . $user['coverpic'] : "../Coverpics/default.jpg";
 
 // ── Update Name ─────────────────────────────────────────────────────────────
@@ -129,7 +129,7 @@ if (isset($_POST['update_profile_pic']) && isset($_FILES['profile_pic'])) {
                 $update->bind_param("si", $dbPath, $user_id);
                 $update->execute();
                 $update->close();
-                if ($oldDp && file_exists(__DIR__ . "/../" . $oldDp)) {
+                if ($oldDp && $oldDp !== 'dp.png' && $oldDp !== 'ProfilePics/dp.png' && file_exists(__DIR__ . "/../" . $oldDp)) {
                     @unlink(__DIR__ . "/../" . $oldDp);
                 }
                 header("Location: edit-profile.php?updated=dp");
@@ -229,21 +229,9 @@ if (isset($_POST['change_password'])) {
     }
 }
 
-// ── Toggle 2FA ──────────────────────────────────────────────────────────────
-if (isset($_POST['toggle_2fa'])) {
-    if (!CsrfProtection::validateToken($_POST['csrf_token'] ?? '')) {
-        $securityError = "Security token mismatch.";
-    } else {
-        $new2faStatus = $twoFactorOn ? 0 : 1;
-        $upd2fa = $conn->prepare("UPDATE users SET two_factor_enabled = ? WHERE id = ?");
-        $upd2fa->bind_param("ii", $new2faStatus, $user_id);
-        $upd2fa->execute();
-        $upd2fa->close();
-
-        $twoFactorOn = ($new2faStatus === 1);
-        $logger->log('2FA_TOGGLED', $twoFactorOn ? 'ENABLED' : 'DISABLED', $user_id, $userEmail);
-        $securitySuccess = $twoFactorOn ? "Two-Factor Authentication is now ENABLED." : "Two-Factor Authentication has been DISABLED.";
-    }
+// ── 2FA is Mandatory (Cannot be disabled or toggled) ─────────────────────────
+if (isset($_POST['toggle_2fa']) || isset($_POST['two_factor_enabled'])) {
+    $securityError = "Two-Factor Authentication is mandatory and cannot be disabled.";
 }
 ?>
 <!DOCTYPE html>
@@ -292,7 +280,7 @@ if (isset($_POST['toggle_2fa'])) {
 <!-- ── Sticky Navbar ── -->
 <nav class="edit-navbar">
   <a class="nav-brand" href="../index.html">
-    <img src="../Daak-pion.png" alt="DaakPion Logo">
+    <img src="../Dakpion-logo.png" alt="DaakPion Logo">
     <span>DaakPion</span>
   </a>
   <div class="nav-actions">
@@ -491,30 +479,17 @@ if (isset($_POST['toggle_2fa'])) {
   <div class="edit-card">
     <div class="card-header" style="justify-content:space-between;">
       <div style="display:flex; align-items:center; gap:8px;">
-        <i class="fa-solid fa-mobile-screen-button"></i>
+        <i class="fa-solid fa-shield-halved"></i>
         <h2>Two-Factor Authentication (2FA)</h2>
       </div>
       <div>
-        <?php if ($twoFactorOn): ?>
-          <span class="security-badge on"><i class="fa-solid fa-circle-check"></i> Enabled</span>
-        <?php else: ?>
-          <span class="security-badge off"><i class="fa-solid fa-circle-xmark"></i> Disabled</span>
-        <?php endif; ?>
+        <span class="security-badge on"><i class="fa-solid fa-lock"></i> Mandatory &amp; Active</span>
       </div>
     </div>
     <div class="card-body">
-      <p style="font-size:14px; color:var(--text-muted); line-height:1.5; margin-bottom:14px;">
-        When 2FA is enabled, you will be required to enter a cryptographically random one-time verification code (OTP) every time you sign in to your DaakPion account.
+      <p style="font-size:14px; color:var(--text-muted); line-height:1.5; margin-bottom:0;">
+        Two-Factor Authentication is mandatory for all DaakPion accounts to protect your conversations and account privacy. A 6-digit one-time verification code (OTP) is sent to your registered email address on every sign-in. This security protection cannot be turned off.
       </p>
-      <form method="POST" id="twoFactorForm">
-        <?php echo CsrfProtection::renderHiddenField(); ?>
-        <input type="hidden" name="toggle_2fa" value="1">
-      </form>
-    </div>
-    <div class="card-footer">
-      <button class="<?php echo $twoFactorOn ? 'btn-secondary' : 'btn-primary'; ?>" onclick="document.getElementById('twoFactorForm').submit()">
-        <i class="fa-solid fa-shield"></i> <?php echo $twoFactorOn ? 'Disable 2FA' : 'Enable 2FA Protection'; ?>
-      </button>
     </div>
   </div>
 

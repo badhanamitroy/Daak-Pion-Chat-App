@@ -463,7 +463,7 @@ PHP;
 
         $this->assert("Production verify_2fa.php suppresses dev-box", strpos($resProd2fa['body'], 'Local Dev Simulated OTP') === false);
 
-        // 3.3: Development mode: verify_2fa.php displays dev-box when resend is triggered
+        // 3.3: Development mode: verify_2fa.php suppresses simulated dev-box (Mandatory Real 2FA rule)
         $csrfToken = CsrfProtection::getToken();
         $resDev2fa = $this->executeSubprocess($verifyScript, [
             '2fa_preauth_user_id' => $user2fa,
@@ -476,7 +476,7 @@ PHP;
         ], [], [], [
             'APP_ENV' => 'development'
         ]);
-        $this->assert("Development mode verify_2fa.php allows dev OTP display", strpos($resDev2fa['body'], 'Local Dev Simulated OTP') !== false);
+        $this->assert("Development mode verify_2fa.php strictly suppresses dev OTP display", strpos($resDev2fa['body'], 'Local Dev Simulated OTP') === false);
 
         // 3.4: Production mode: forgot_password.php suppresses dev_token
         $forgotScript = realpath(__DIR__ . '/../php/forgot_password.php');

@@ -9,6 +9,7 @@ use Daakpion\Security\CsrfProtection;
 
 $message = null;
 $devToken = null;
+$devMailNotice = null;
 $service = new PasswordResetService($conn);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -19,8 +20,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = trim($_POST['email'] ?? '');
         $res = $service->requestReset($email);
         $message = $res['message'];
-        if (!empty($res['dev_token']) && \Daakpion\Security\Environment::allowDevSecrets()) {
-            $devToken = $res['dev_token'];
+        if (\Daakpion\Security\Environment::allowDevSecrets()) {
+            if (!empty($res['dev_token'])) {
+                $devToken = $res['dev_token'];
+            }
+            if (!empty($res['dev_mail_error'])) {
+                $devMailNotice = $res['dev_mail_error'];
+            }
         }
     }
 }
@@ -168,10 +174,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <i class="fa-solid fa-circle-check"></i> <?php echo htmlspecialchars($message); ?>
     </div>
 
-    <?php if ($devToken && \Daakpion\Security\Environment::allowDevSecrets()): ?>
+    <?php if (($devToken || $devMailNotice) && \Daakpion\Security\Environment::allowDevSecrets()): ?>
       <div class="dev-box">
-        <strong><i class="fa-solid fa-laptop-code"></i> Local Dev Simulated Reset Link:</strong><br>
-        <a href="reset_password.php?token=<?php echo urlencode($devToken); ?>">Click here to proceed to Password Reset Form</a>
+        <?php if ($devToken): ?>
+          <strong><i class="fa-solid fa-laptop-code"></i> Local Dev Simulated Reset Link:</strong><br>
+          <a href="reset_password.php?token=<?php echo urlencode($devToken); ?>">Click here to proceed to Password Reset Form</a>
+        <?php endif; ?>
+        <?php if ($devMailNotice): ?>
+          <div style="<?php echo $devToken ? 'margin-top:8px; padding-top:6px; border-top:1px dashed rgba(255,255,255,0.2);' : ''; ?> font-size:12px;">
+            <strong><i class="fa-solid fa-circle-info"></i> Dev Mail Diagnostic:</strong> <?php echo htmlspecialchars($devMailNotice); ?>
+          </div>
+        <?php endif; ?>
       </div>
     <?php endif; ?>
   <?php endif; ?>

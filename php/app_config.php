@@ -5,10 +5,12 @@
 //
 // All PHP files that need these values must: require_once 'app_config.php';
 
-// ─── Message Encryption ────────────────────────────────────────────────────
-// Change this to a long, random string before deploying to production.
-// You can generate one with: php -r "echo bin2hex(random_bytes(32));"
-define('SECRET_KEY', 'your-strong-secret-key-change-me-in-production');
+// ─── Legacy Backward-Compatibility Key (Deprecated) ─────────────────────────
+// DEPRECATED: Retained strictly for decrypting legacy pre-v2 AES-256-CBC messages.
+// Active message encryption strictly requires MESSAGE_ENCRYPTION_KEY from security_secrets.php.
+if (!defined('SECRET_KEY')) {
+    define('SECRET_KEY', 'your-strong-secret-key-change-me-in-production');
+}
 
 // ─── File Upload Constraints ────────────────────────────────────────────────
 define('MAX_UPLOAD_BYTES',   5 * 1024 * 1024);              // 5 MB hard limit

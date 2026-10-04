@@ -182,6 +182,9 @@ class SessionManager
 
         $newVersion = (int)($row['password_version'] ?? 1);
 
+        // Revoke all persistent tokens on password change
+        PersistentAuthService::revokeAllForUser($userId, $db);
+
         if (session_status() === PHP_SESSION_ACTIVE) {
             $_SESSION['password_version'] = $newVersion;
             if (!headers_sent()) {
@@ -191,6 +194,7 @@ class SessionManager
 
         return $newVersion;
     }
+
 
     /**
      * Safely terminates session and clears cookies.

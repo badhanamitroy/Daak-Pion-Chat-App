@@ -79,8 +79,10 @@ html, body {
 }
 
 .sidebar-brand img {
-  width: 36px;
+  width: auto;
+  max-width: 44px;
   height: 36px;
+  object-fit: contain;
   border-radius: 8px;
 }
 
